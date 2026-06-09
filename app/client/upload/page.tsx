@@ -137,7 +137,6 @@ export default function UploadPage() {
               >
                 {loading ? "Uploading..." : "Upload Video"}
               </Button>
-
             </div>
           </CardContent>
         </Card>
