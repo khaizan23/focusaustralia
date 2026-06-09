@@ -3,7 +3,18 @@
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import Link from "next/link";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardFooter,
+  CardDescription,
+} from "@/components/ui/card";
+import {
+  FieldDescription,
+} from "@/components/ui/field";
 import { Label } from "@/components/ui/label"
 import { supabase } from "@/lib/supabase"
 
@@ -52,17 +63,16 @@ export default function LoginPage() {
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-muted">
-      <Card className="w-full max-w-md">
-
+      <Card className="w-full max-w-sm">
         <CardHeader>
-          <CardTitle className="text-2xl text-center">
-            Login
-          </CardTitle>
+          <CardTitle className="pt-5">Login to your account</CardTitle>
+          <CardDescription>
+            Enter your email below to login to your account
+          </CardDescription>
         </CardHeader>
 
         <CardContent>
           <div className="flex flex-col gap-4">
-
             <div className="flex flex-col gap-2">
               <Label>Email</Label>
               <Input
@@ -70,6 +80,9 @@ export default function LoginPage() {
                 placeholder="Enter your email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") handleLogin();
+                }}
               />
             </div>
 
@@ -80,25 +93,29 @@ export default function LoginPage() {
                 placeholder="Enter your password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") handleLogin();
+                }}
               />
             </div>
-
-            {error && (
-              <p className="text-red-500 text-sm">{error}</p>
-            )}
-
-            <Button
-              className="w-full"
-              onClick={handleLogin}
-              disabled={loading}
-            >
-              {loading ? "Logging in..." : "Login"}
-            </Button>
-
           </div>
         </CardContent>
-
+        {error && <p className="text-red-500 text-sm">{error}</p>}
+        <CardFooter className="flex-col gap-2">
+          <Button className="w-full" onClick={handleLogin} disabled={loading}>
+            {loading ? "Logging in..." : "Login"}
+          </Button>
+          <Link href="/register" className="w-full">
+            <Button variant="outline" className="w-full">
+              Create new account
+            </Button>
+          </Link>
+          <FieldDescription className="px-6 py-3 text-center">
+            By clicking continue, you agree to our{" "}
+            <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>.
+          </FieldDescription>
+        </CardFooter>
       </Card>
     </main>
-  )
+  );
 }

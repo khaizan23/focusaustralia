@@ -189,9 +189,9 @@ export default function MyVideosPage() {
         ) : videos.length === 0 ? (
           <p className="text-muted-foreground">No videos uploaded yet.</p>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
             {videos.map((video) => (
-              <Card key={video.id} className="overflow-hidden">
+              <Card key={video.id} className="overflow-hidden max-w-xs">
                 {/* Thumbnail */}
                 <div
                   className="relative w-full aspect-video bg-muted cursor-pointer group"
