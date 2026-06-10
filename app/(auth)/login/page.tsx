@@ -100,7 +100,7 @@ export default function LoginPage() {
             </div>
           </div>
         </CardContent>
-        {error && <p className="text-red-500 text-sm">{error}</p>}
+          {error && <p className="text-red-500 text-sm mx-4">{error}</p>}
         <CardFooter className="flex-col gap-2">
           <Button className="w-full" onClick={handleLogin} disabled={loading}>
             {loading ? "Logging in..." : "Login"}

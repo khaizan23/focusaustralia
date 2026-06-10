@@ -11,9 +11,10 @@ interface SidebarNavProps {
 
 const clientLinks = [
   { href: "/client/dashboard", label: "Dashboard" },
-  { href: "/client/upload", label: "Upload Video" },
+  { href: "/client/background", label: "Background" },
+  { href: "/client/upload", label: "Upload Files" },
   { href: "/client/my-videos", label: "My Videos" },
-]
+];
 
 const adminLinks = [
   { href: "/admin/dashboard", label: "Dashboard" },
