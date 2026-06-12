@@ -3,7 +3,15 @@
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import Link from "next/link";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardFooter,
+} from "@/components/ui/card";
 import { Label } from "@/components/ui/label"
 import { supabase } from "@/lib/supabase"
 
@@ -55,17 +63,16 @@ export default function RegisterPage() {
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-muted">
-      <Card className="w-full max-w-md">
-
+      <Card className="w-full max-w-sm">
         <CardHeader>
-          <CardTitle className="text-2xl text-center">
-            Register
-          </CardTitle>
+          <CardTitle className="text-2xl pt-5">Sign Up</CardTitle>
+          <CardDescription>
+            Create a new account to get started.
+          </CardDescription>
         </CardHeader>
 
         <CardContent>
           <div className="flex flex-col gap-4">
-
             <div className="flex flex-col gap-2">
               <Label>Full Name</Label>
               <Input
@@ -106,22 +113,22 @@ export default function RegisterPage() {
               />
             </div>
 
-            {error && (
-              <p className="text-red-500 text-sm">{error}</p>
-            )}
+            {error && <p className="text-red-500 text-sm">{error}</p>}
 
             <Button
-              className="w-full"
+              className="w-full py-2"
               onClick={handleRegister}
               disabled={loading}
             >
               {loading ? "Registering..." : "Register"}
             </Button>
-
           </div>
         </CardContent>
-
+        <CardFooter className="text-center justify-center text-sm text-muted-foreground">
+          Already have an account?
+          <Link href="/login" className="text-black px-1 hover:underline "> Sign in</Link>
+        </CardFooter>
       </Card>
     </main>
-  )
+  );
 }
