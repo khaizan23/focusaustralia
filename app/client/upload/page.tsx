@@ -540,29 +540,9 @@ export default function UploadPage() {
                   ) : "Delete"}
                 </Button>
               </div>
-
-<<<<<<< HEAD
-              {error && (
-                <p className="text-red-500 text-sm">{error}</p>
-              )}
-
-              {success && (
-                <p className="text-green-500 text-sm">{success}</p>
-              )}
-
-              <Button
-                className="w-full"
-                onClick={handleUpload}
-                disabled={loading}
-              >
-                {loading ? "Uploading..." : "Upload Video"}
-              </Button>
-=======
->>>>>>> recovered-work
             </div>
           </div>
         )}
-
       </main>
     </div>
   )
