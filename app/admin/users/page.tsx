@@ -6,6 +6,12 @@ import { Input } from "@/components/ui/input"
 import { supabase } from "@/lib/supabase"
 import SidebarNav from "@/components/ui/sidebar-nav"
 import { Separator } from "@/components/ui/separator";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Eye,  
+  TrashIcon,
+  Download,
+} from "lucide-react";
 
 interface Profile {
   id: string
@@ -136,7 +142,7 @@ export default function UsersPage() {
       .from("experiences")
       .select("*")
       .eq("user_id", user.id)
-      .order("created_at", { ascending: true });
+      .order("start_year", { ascending: false });
 
     if (expData) setUserExperiences(expData);
 
@@ -263,17 +269,18 @@ export default function UsersPage() {
     <div className="flex">
       <SidebarNav role="admin" />
 
-      <main className="flex-1 p-8">
+      <main className="flex-1 p-8 bg-neutral-50">
         {/* Table */}
         <div className="rounded-xl border">
-          <div className="flex justify-between px-5 py-3">
-            <div className="text-md">
+          <div className="flex justify-between px-5 py-3 bg-red-900 rounded-t-xl">
+            <div className="text-md text-white">
               <span className="font-light text-sm">👥 Total Candidates:</span>{" "}
               {filteredUsers.length} candidates
             </div>
             <div className="w-64">
               <Input
                 placeholder="Search by name..."
+                className="rounded bg-white"
                 value={search}
                 onChange={(e) => handleSearch(e.target.value)}
               />
@@ -281,8 +288,19 @@ export default function UsersPage() {
           </div>
 
           {loading ? (
-            <p className="text-muted-foreground">Loading users...</p>
-          ) : filteredUsers.length === 0 ? (
+            <div className="flex w-full max-w-xs flex-col gap-7 my-5 mx-10">
+              <div className="flex flex-col gap-3">
+                <Skeleton className="h-4 w-20" />
+                <Skeleton className="h-8 w-full" />
+              </div>
+              <div className="flex flex-col gap-3">
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-8 w-full" />
+              </div>
+              <Skeleton className="h-8 w-24" />
+            </div>
+          ) : // <p className="text-muted-foreground">Loading users...</p>
+          filteredUsers.length === 0 ? (
             <div className="flex justify-center items-center p-10 bg-black/5 min-h-80">
               <p className="text-muted-foreground">No users found.</p>
             </div>
@@ -336,7 +354,7 @@ export default function UsersPage() {
 
                     {/* Status Badge */}
                     <td className="px-4 py-3">
-                      <span className="px-2 py-1 rounded-full text-xs font-medium bg-muted text-muted-foreground">
+                      <span className="px-2 py-1 rounded-full border text-xs font-medium bg-green-100 text-green-700">
                         {user.status || "TBA"}
                       </span>
                     </td>
@@ -380,7 +398,7 @@ export default function UsersPage() {
             <div className="bg-card rounded-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto">
               {/* Modal Header */}
               <div className="flex justify-between items-center py-3 px-5 border-b sticky top-0 bg-card">
-                <h2 className="text-lg font-semibold">User Details</h2>
+                <h2 className="text-lg font-semibold">Client Details</h2>
                 <Button
                   variant="outline"
                   onClick={() => {
@@ -565,6 +583,7 @@ export default function UsersPage() {
                                 handleDownload(file.file_path, file.title)
                               }
                             >
+                              <Download />
                               Download
                             </Button>
                           </div>
@@ -698,24 +717,28 @@ function ActionMenu({
           />
 
           {/* Menu */}
-          <div className="absolute right-10 top-8 z-50 bg-card border rounded-lg shadow-lg w-48 py-1">
+          <div className="absolute right-10 px-1 top-8 z-50 bg-card border rounded-lg shadow-lg w-48 py-1">
             <button
               onClick={() => {
                 onView();
                 setOpen(false);
               }}
-              className="w-full text-left px-4 py-2 text-sm hover:bg-muted transition-colors"
+              className="w-full text-left px-4 py-2 text-sm hover:bg-muted transition-colors rounded-lg flex items-center gap-1"
             >
-              👁 View Profile
+              {/* 👁  */}
+              <Eye size={16}/>
+              View Profile
             </button>
             <button
               onClick={() => {
                 onDelete();
                 setOpen(false);
               }}
-              className="w-full text-left px-4 py-2 text-sm  hover:bg-muted transition-colors"
+              className="w-full text-left px-4 py-2 text-sm  hover:bg-red-100 transition-colors rounded-lg flex items-center text-red-500 gap-1"
             >
-              🗑 <span className="text-red-500">Delete User</span> 
+              {/* 🗑  */}
+              <TrashIcon size={16} />
+              Delete User
             </button>
           </div>
         </>

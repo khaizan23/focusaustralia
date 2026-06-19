@@ -3,7 +3,7 @@ import SidebarNav from "@/components/ui/sidebar-nav";
 export default function AdminDashboard() {
     return (
 
-      <main className="min-h-screen">
+      <main className="min-h-screen bg-neutral-50">
             <div className="flex flex-row flex-nowrap justify-start items-stretch gap-3">
             <SidebarNav role="admin" />
               <div className="grow shrink-3">

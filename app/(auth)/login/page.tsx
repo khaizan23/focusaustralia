@@ -25,39 +25,54 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false)
 
   async function handleLogin() {
-    setError("")
-    setLoading(true)
+    setError("");
+    setLoading(true);
 
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
-    })
+    });
 
     if (error) {
-      setError(error.message)
-      setLoading(false)
-      return
+      setError(error.message);
+      setLoading(false);
+      return;
     }
 
     // I-set ang cookie manually
-    document.cookie = `sb-access-token=${data.session?.access_token}; path=/`
+    document.cookie = `sb-access-token=${data.session?.access_token}; path=/`;
 
     // I-check ang role ng user
     const { data: profile } = await supabase
       .from("profiles")
-      .select("role")
+      .select("role, verification_status")
       .eq("id", data.user.id)
-      .single()
+      .single();
 
-//       console.log("Profile:", profile)
-//     console.log("Profile Error:", profileError)
-// console.log("Role:", profile?.role)
+    //       console.log("Profile:", profile)
+    //     console.log("Profile Error:", profileError)
+    // console.log("Role:", profile?.role)
 
-    // I-redirect depende sa role
+    // I-redirect depende sa role at verification status
     if (profile?.role === "admin") {
-      window.location.href = "/admin/dashboard"
+      window.location.href = "/admin/dashboard";
+    } else if (profile?.role === "employer") {
+      if (profile?.verification_status === "verified") {
+        window.location.href = "/employer/dashboard";
+      } else if (profile?.verification_status === "rejected") {
+        setError(
+          "Your account has been rejected. Please create a new account.",
+        );
+        setLoading(false);
+        // I-clear ang cookie
+        document.cookie =
+          "sb-access-token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+        return;
+      } else {
+        window.location.href = "/employer/pending";
+      }
     } else {
-      window.location.href = "/client/dashboard"
+      window.location.href = "/client/dashboard";
     }
   }
 

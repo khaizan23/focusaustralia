@@ -7,6 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/lib/supabase";
 import SidebarNav from "@/components/ui/sidebar-nav";
+import { TrashIcon, Save } from "lucide-react";
 
 interface Experience {
   id: string;
@@ -72,7 +73,7 @@ const EMPLOYMENT_TYPES = [
   "Casual",
 ];
 
-const YEARS = Array.from({ length: 30 }, (_, i) =>
+const YEARS = Array.from({ length: 50 }, (_, i) =>
   (new Date().getFullYear() - i).toString(),
 );
 
@@ -83,6 +84,9 @@ export default function BackgroundPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [form, setForm] = useState<ExperienceForm>(INITIAL_FORM);
+  const [deleteModal, setDeleteModal] = useState(false);
+  const [expToDelete, setExpToDelete] = useState<Experience | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     async function fetchExperiences() {
@@ -134,6 +138,14 @@ export default function BackgroundPage() {
       setError("Company name is required");
       return;
     }
+    if (!form.location) {
+      setError("Location is required");
+      return;
+    }
+    if (!form.employment_type) {
+      setError("Employment type is required");
+      return;
+    }
     if (!form.start_month || !form.start_year) {
       setError("Start month and year are required");
       return;
@@ -178,21 +190,49 @@ export default function BackgroundPage() {
     setSaving(false);
   }, [form, handleCloseModal]);
 
-  async function handleDelete(id: string) {
-    const { error } = await supabase.from("experiences").delete().eq("id", id);
+  const handleShowDelete = useCallback((exp: Experience) => {
+    setExpToDelete(exp);
+    setDeleteModal(true);
+  }, []);
+
+  const handleConfirmDelete = useCallback(async () => {
+    if (!expToDelete) return;
+    setDeleting(true);
+
+    const { error } = await supabase
+      .from("experiences")
+      .delete()
+      .eq("id", expToDelete.id);
 
     if (!error) {
-      setExperiences((prev) => prev.filter((exp) => exp.id !== id));
+      setExperiences((prev) => prev.filter((exp) => exp.id !== expToDelete.id));
     }
-  }
+
+    setDeleting(false);
+    setDeleteModal(false);
+    setExpToDelete(null);
+  }, [expToDelete]);
+
+  const handleCancelDelete = useCallback(() => {
+    setDeleteModal(false);
+    setExpToDelete(null);
+  }, []);
+
+  // async function handleDelete(id: string) {
+  //   const { error } = await supabase.from("experiences").delete().eq("id", id);
+
+  //   if (!error) {
+  //     setExperiences((prev) => prev.filter((exp) => exp.id !== id));
+  //   }
+  // }
 
   return (
     <div className="flex">
       <SidebarNav role="client" />
 
-      <main className="flex-1 p-8">
+      <main className="flex-1 p-8 bg-neutral-50">
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold">Experience</h1>
+          <h1 className="text-xl font-semibold">Work Experience</h1>
           <Button onClick={handleOpenModal}>+ Add Experience</Button>
         </div>
 
@@ -204,7 +244,7 @@ export default function BackgroundPage() {
         ) : (
           <div className="flex flex-col gap-4 items-center">
             {experiences.map((exp) => (
-              <Card key={exp.id} className="w-[80%]">
+              <Card key={exp.id} className="w-[80%] shadow-sm">
                 <CardContent className="pt-4">
                   <div className="flex justify-between items-start">
                     <div className="flex flex-col gap-1">
@@ -230,15 +270,62 @@ export default function BackgroundPage() {
                     </div>
 
                     <Button
-                      variant="outline"
-                      onClick={() => handleDelete(exp.id)}
+                      variant="warning"
+                      onClick={() => handleShowDelete(exp)}
                     >
+                      <TrashIcon />
                       Delete
                     </Button>
                   </div>
                 </CardContent>
               </Card>
             ))}
+          </div>
+        )}
+
+        {/* Delete Confirmation Modal */}
+        {deleteModal && expToDelete && (
+          <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
+            <div className="bg-card rounded-xl w-full max-w-sm p-6 flex flex-col gap-4">
+              <h2 className="text-lg font-semibold">Delete Experience</h2>
+
+              <p className="text-sm text-muted-foreground">
+                Are you sure you want to delete{" "}
+                <span className="font-medium text-foreground">
+                  "{expToDelete.job_title}"
+                </span>{" "}
+                at{" "}
+                <span className="font-medium text-foreground">
+                  {expToDelete.company_name}
+                </span>
+                ? This action cannot be undone.
+              </p>
+
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  className="flex-1"
+                  onClick={handleCancelDelete}
+                  disabled={deleting}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  className="flex-1 bg-red-500 hover:bg-red-600 text-white"
+                  onClick={handleConfirmDelete}
+                  disabled={deleting}
+                >
+                  {deleting ? (
+                    <div className="flex items-center gap-2">
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      Deleting...
+                    </div>
+                  ) : (
+                    "Delete"
+                  )}
+                </Button>
+              </div>
+            </div>
           </div>
         )}
 
@@ -282,7 +369,7 @@ export default function BackgroundPage() {
 
                 {/* Location */}
                 <div className="flex flex-col gap-2">
-                  <Label>Location</Label>
+                  <Label>Location *</Label>
                   <Input
                     placeholder="Ex. Sydney, Australia"
                     value={form.location}
@@ -294,7 +381,7 @@ export default function BackgroundPage() {
 
                 {/* Employment Type */}
                 <div className="flex flex-col gap-2">
-                  <Label>Employment Type</Label>
+                  <Label>Employment Type *</Label>
                   <select
                     value={form.employment_type}
                     onChange={(e) =>
@@ -414,11 +501,21 @@ export default function BackgroundPage() {
 
                 {/* Save Button */}
                 <Button
-                  className="w-full"
+                  className="w-full hover:bg-black/80"
                   onClick={handleSave}
                   disabled={saving}
                 >
-                  {saving ? "Saving..." : "Save Experience"}
+                  {saving ? (
+                    <div className="flex items-center gap-2">
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      Saving...
+                    </div>
+                  ) : (
+                    <>
+                      <Save />
+                      Save Experience
+                    </>
+                  )}
                 </Button>
               </div>
             </div>

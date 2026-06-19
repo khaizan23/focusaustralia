@@ -269,7 +269,7 @@ export default function UploadPage() {
     <div className="flex">
       <SidebarNav role="client" />
 
-      <main className="flex-1 p-8">
+      <main className="flex-1 p-8 bg-neutral-50">
         <h1 className="text-2xl font-bold mb-8">My Files & Links</h1>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">

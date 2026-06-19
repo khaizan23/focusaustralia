@@ -6,7 +6,7 @@ import LogoutButton from "@/components/ui/logout-button"
 import { cn } from "@/lib/utils"
 
 interface SidebarNavProps {
-  role: "admin" | "client"
+  role: "admin" | "client" | "employer"
 }
 
 const clientLinks = [
@@ -18,16 +18,26 @@ const clientLinks = [
 
 const adminLinks = [
   { href: "/admin/dashboard", label: "Dashboard" },
-  { href: "/admin/allvideos", label: "All Videos" },
   { href: "/admin/users", label: "Users" },
-]
+  { href: "/admin/pending-verifications", label: "Pending Verifications" },
+  { href: "/admin/allvideos", label: "All Videos" },
+  { href: "/admin/settings", label: "Settings" },
+];
+
+const employerLinks = [
+  { href: "/employer/dashboard", label: "Dashboard" },
+  { href: "/employer/candidates", label: "Candidates" },
+  { href: "/employer/settings", label: "Settings" },
+];
 
 export default function SidebarNav({ role }: SidebarNavProps) {
   const pathname = usePathname()
-  const links = role === "admin" ? adminLinks : clientLinks
+  const links = 
+    role === "admin" ? adminLinks :
+    role === "employer" ? employerLinks: clientLinks
 
   return (
-    <aside className="w-64 min-h-screen bg-card border-r flex flex-col">
+    <aside className="xs:w-10 md:w-64 min-h-screen bg-card border-r flex flex-col">
       
       {/* Logo/Title */}
       <div className="p-6 border-b">
@@ -44,7 +54,7 @@ export default function SidebarNav({ role }: SidebarNavProps) {
             className={cn(
               "px-4 py-2 rounded-lg text-sm transition-colors",
               pathname === link.href
-                ? "bg-primary text-primary-foreground"
+                ? "bg-red-900 text-primary-foreground"
                 : "hover:bg-muted text-muted-foreground hover:text-foreground"
             )}
           >
@@ -54,7 +64,7 @@ export default function SidebarNav({ role }: SidebarNavProps) {
       </nav>
 
       {/* Logout */}
-      <div className="p-4 border-t">
+      <div className="p-3 border-t">
         <LogoutButton />
       </div>
 

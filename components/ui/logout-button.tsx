@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/button"
 import { supabase } from "@/lib/supabase"
+import { LogOut } from "lucide-react";
 
 export default function LogoutButton() {
   async function handleLogout() {
@@ -15,7 +16,7 @@ export default function LogoutButton() {
 
   return (
     <Button variant="outline" onClick={handleLogout}>
-      Logout
+      <LogOut />Logout
     </Button>
-  )
+  );
 }

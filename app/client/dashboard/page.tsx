@@ -7,12 +7,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/lib/supabase";
 import SidebarNav from "@/components/ui/sidebar-nav";
+import { Pen, Save, Loader } from "lucide-react";
 
 interface Profile {
   id: string;
   full_name: string;
   email: string;
   role: string;
+  status: string;
   phone: string | null;
   birthdate: string | null;
   address: string | null;
@@ -20,6 +22,7 @@ interface Profile {
   gender: string | null;
   height: number | null;
   weight: number | null;
+  position: string | null;
   avatar_url: string | null;
 }
 
@@ -32,6 +35,7 @@ interface FormState {
   gender: string;
   height: string;
   weight: string;
+  position: string;
 }
 
 const INITIAL_FORM: FormState = {
@@ -43,6 +47,7 @@ const INITIAL_FORM: FormState = {
   gender: "",
   height: "",
   weight: "",
+  position: "",
 };
 
 export default function ClientDashboard() {
@@ -67,6 +72,7 @@ export default function ClientDashboard() {
       gender: data.gender || "",
       height: data.height?.toString() || "",
       weight: data.weight?.toString() || "",
+      position: data.position || "",
     });
   }, []);
 
@@ -156,6 +162,7 @@ export default function ClientDashboard() {
       gender: form.gender,
       height: form.height ? parseFloat(form.height) : null,
       weight: form.weight ? parseFloat(form.weight) : null,
+      position: form.position,
       avatar_url: avatarUrl,
     };
 
@@ -204,8 +211,8 @@ export default function ClientDashboard() {
     <div className="flex">
       <SidebarNav role="client" />
 
-      <main className="flex-1 p-8">
-        <h1 className="text-2xl font-bold mb-6">My Profile</h1>
+      <main className="flex-1 p-8 bg-neutral-50">
+        <h1 className="text-2xl font-bold mb-6">Set up your Profile</h1>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Profile Photo Card */}
           <Card className="lg:col-span-1 py-4">
@@ -233,6 +240,7 @@ export default function ClientDashboard() {
 
               {editing && (
                 <Input
+                className="md:w-[50%] hover:bg-black/5"
                   type="file"
                   accept=".jpg,.jpeg,.png"
                   onChange={handleAvatarChange}
@@ -246,7 +254,10 @@ export default function ClientDashboard() {
                   {profile?.email}
                 </p>
                 <p className="text-sm text-muted-foreground capitalize">
-                  {profile?.role}
+                  {profile?.role}:{" "}
+                  <span className="text-xs border px-2 py-0.5 rounded-2xl bg-green-200">
+                    {profile?.status}
+                  </span>
                 </p>
               </div>
               {/* Bio */}
@@ -274,6 +285,7 @@ export default function ClientDashboard() {
               <CardTitle>Profile Details</CardTitle>
               {!editing ? (
                 <Button variant="outline" onClick={() => setEditing(true)}>
+                  <Pen />
                   Edit Profile
                 </Button>
               ) : (
@@ -282,7 +294,16 @@ export default function ClientDashboard() {
                     Cancel
                   </Button>
                   <Button onClick={handleSave} disabled={saving}>
-                    {saving ? "Saving..." : "Save Changes"}
+                    {/* <Save />{saving ? "Saving..." : "Save Changes"} */}
+                    {saving ? (
+                      <>
+                      <Loader /> Saving...
+                      </>
+                    ) : (
+                      <>
+                      <Save/> Save Changes
+                      </>
+                    )}
                   </Button>
                 </div>
               )}
@@ -418,6 +439,34 @@ export default function ClientDashboard() {
                   ) : (
                     <p className="text-sm">
                       {profile?.weight ? `${profile.weight} kg` : "—"}
+                    </p>
+                  )}
+                </div>
+                <div className="flex flex-col gap-2">
+                  <Label>Position:</Label>
+                  {editing ? (
+                    <select
+                      value={form.position}
+                      onChange={(e) =>
+                        handleFormChange("position", e.target.value)
+                      }
+                      className="h-8 w-full rounded-lg border border-input bg-transparent px-2.5 text-sm"
+                    >
+                      <option value="">Select Position</option>
+                      <option value="Barber">Barber</option>
+                      <option value="Vehicle Spray Painter">
+                        Vehicle Spray Painter
+                      </option>
+                      <option value="Landscape Gardener">
+                        Landscape Gardener
+                      </option>
+                      <option value="Mechanical Fitter">
+                        Mechanical Fitter
+                      </option>
+                    </select>
+                  ) : (
+                    <p className="text-sm capitalize">
+                      {profile?.position || "—"}
                     </p>
                   )}
                 </div>
