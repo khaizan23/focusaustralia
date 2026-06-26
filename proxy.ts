@@ -44,7 +44,7 @@ export default async function proxy(request: NextRequest) {
           if (profile?.verification_status === "verified") {
             return NextResponse.redirect(new URL("/employer/dashboard", request.url))
           } else if (profile?.verification_status === "rejected") {
-            return NextResponse.redirect(new URL("/login", request.url))
+            return NextResponse.next()
           } else {
             return NextResponse.redirect(new URL("/employer/pending", request.url))
           }
@@ -128,6 +128,10 @@ export default async function proxy(request: NextRequest) {
       // Kung employer pero hindi pa verified
       if (profile?.verification_status === "pending" && path !== "/employer/pending") {
         return NextResponse.redirect(new URL("/employer/pending", request.url))
+      }
+
+      if (profile?.verification_status === "verified" && path === "/employer/pending") {
+        return NextResponse.redirect(new URL("/employer/dashboard", request.url))
       }
 
       // Kung employer pero rejected

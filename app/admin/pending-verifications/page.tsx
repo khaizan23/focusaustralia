@@ -178,7 +178,7 @@ export default function PendingVerificationsPage() {
           title: "Reject Employer",
           message: `Are you sure you want to reject "${actionModal.employer?.company_name}"? They will not be able to access the platform.`,
           buttonLabel: "Reject",
-          buttonClass: "bg-red-500 hover:bg-red-600 text-white",
+          buttonClass: "bg-red-800 hover:bg-red-900 text-white",
         };
       case "delete":
         return {

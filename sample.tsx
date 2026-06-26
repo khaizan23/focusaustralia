@@ -1,98 +1,132 @@
-import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
+"use client";
 
-export default async function proxy(request: NextRequest) {
-  const path = request.nextUrl.pathname;
-  const token = request.cookies.get("sb-access-token")?.value;
+import { useEffect, useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { supabase } from "@/lib/supabase";
+import SidebarNav from "@/components/ui/sidebar-nav";
 
-  // Kung hindi naka-login
-  if (!token && path !== "/login" && path !== "/register") {
-    return NextResponse.redirect(new URL("/login", request.url));
-  }
-
-  // Kung naka-login na pero pumunta sa login/register
-  if (token && (path === "/login" || path === "/register")) {
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SECRET_KEY!,
-    );
-
-    const {
-      data: { user },
-    } = await supabase.auth.getUser(token);
-
-    if (user) {
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("role")
-        .eq("id", user.id)
-        .single();
-
-      if (profile?.role === "admin") {
-        return NextResponse.redirect(new URL("/admin/dashboard", request.url));
-      } else {
-        return NextResponse.redirect(new URL("/client/dashboard", request.url));
-      }
-    }
-  }
-
-  // Kung naka-login at nag-access ng /admin/*
-  if (token && path.startsWith("/admin")) {
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SECRET_KEY!,
-    );
-
-    const {
-      data: { user },
-    } = await supabase.auth.getUser(token);
-
-    if (!user) {
-      return NextResponse.redirect(new URL("/login", request.url));
-    }
-
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("role")
-      .eq("id", user.id)
-      .single();
-
-    // Kung hindi admin — i-redirect sa client dashboard
-    if (profile?.role !== "admin") {
-      return NextResponse.redirect(new URL("/client/dashboard", request.url));
-    }
-  }
-
-  // Kung naka-login at nag-access ng /client/*
-  if (token && path.startsWith("/client")) {
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SECRET_KEY!,
-    );
-
-    const {
-      data: { user },
-    } = await supabase.auth.getUser(token);
-
-    if (!user) {
-      return NextResponse.redirect(new URL("/login", request.url));
-    }
-
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("role")
-      .eq("id", user.id)
-      .single();
-
-    // Kung admin nag-access ng client pages — i-redirect sa admin dashboard
-    if (profile?.role === "admin") {
-      return NextResponse.redirect(new URL("/admin/dashboard", request.url));
-    }
-  }
-
-  return NextResponse.next();
+interface Stats {
+  totalClients: number;
+  totalVerifiedEmployers: number;
+  totalAdmins: number;
+  totalAvailableClients: number;
 }
 
-export const config = {
-  matcher: ["/admin/:path*", "/client/:path*", "/login", "/register"],
-};
+export default function AdminDashboard() {
+  const [stats, setStats] = useState<Stats>({
+    totalClients: 0,
+    totalVerifiedEmployers: 0,
+    totalAdmins: 0,
+    totalAvailableClients: 0,
+  });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchStats() {
+      // Total Clients
+      const { count: totalClients } = await supabase
+        .from("profiles")
+        .select("*", { count: "exact", head: true })
+        .eq("role", "client");
+
+      // Total Verified Employers
+      const { count: totalVerifiedEmployers } = await supabase
+        .from("profiles")
+        .select("*", { count: "exact", head: true })
+        .eq("role", "employer")
+        .eq("verification_status", "verified");
+
+      // Total Admins
+      const { count: totalAdmins } = await supabase
+        .from("profiles")
+        .select("*", { count: "exact", head: true })
+        .eq("role", "admin");
+
+      // Total Available Clients
+      const { count: totalAvailableClients } = await supabase
+        .from("profiles")
+        .select("*", { count: "exact", head: true })
+        .eq("role", "client")
+        .eq("status", "available");
+
+      setStats({
+        totalClients: totalClients || 0,
+        totalVerifiedEmployers: totalVerifiedEmployers || 0,
+        totalAdmins: totalAdmins || 0,
+        totalAvailableClients: totalAvailableClients || 0,
+      });
+
+      setLoading(false);
+    }
+
+    fetchStats();
+  }, []);
+
+  const statCards = [
+    {
+      title: "Total Clients",
+      value: stats.totalClients,
+      icon: "👤",
+      description: "Registered client accounts",
+    },
+    {
+      title: "Verified Employers",
+      value: stats.totalVerifiedEmployers,
+      icon: "🏢",
+      description: "Verified employer accounts",
+    },
+    {
+      title: "Total Admins",
+      value: stats.totalAdmins,
+      icon: "🛡️",
+      description: "Administrator accounts",
+    },
+    {
+      title: "Available Clients",
+      value: stats.totalAvailableClients,
+      icon: "✅",
+      description: "Clients ready for hire",
+    },
+  ];
+
+  return (
+    <div className="flex">
+      <SidebarNav role="admin" />
+
+      <main className="flex-1 p-8">
+        <h1 className="text-2xl font-bold mb-6">Admin Dashboard</h1>
+
+        {loading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {[...Array(4)].map((_, i) => (
+              <Card key={i}>
+                <CardContent className="pt-6">
+                  <div className="h-16 bg-muted animate-pulse rounded-lg" />
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {statCards.map((stat) => (
+              <Card key={stat.title}>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                    <span>{stat.icon}</span>
+                    {stat.title}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-3xl font-bold">{stat.value}</p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {stat.description}
+                  </p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
+      </main>
+    </div>
+  );
+}

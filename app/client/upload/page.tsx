@@ -7,6 +7,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
 import { supabase } from "@/lib/supabase"
 import SidebarNav from "@/components/ui/sidebar-nav"
+import { FileText, Video, CircleAlert } from "lucide-react";
 
 interface ClientFile {
   id: string
@@ -270,30 +271,45 @@ export default function UploadPage() {
       <SidebarNav role="client" />
 
       <main className="flex-1 p-8 bg-neutral-50">
-        <h1 className="text-2xl font-bold mb-8">My Files & Links</h1>
+        <div className="flex justify-between mb-8">
+          <div>
+            <h1 className="text-2xl font-bold">My Files & Links</h1>
+            <p className="text-muted-foreground text-sm">
+              Manage your documents and video links
+            </p>
+          </div>
+          <div>
+            <p className="text-sm flex items-center gap-2 text-muted-foreground bg-neutral-100 border py-1 px-2 rounded-lg ">
+              <CircleAlert size={15} />
+              Files and links are visible to employers
+            </p>
+          </div>
+        </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
           {/* LEFT — Documents Section */}
-          <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-8">
             <h2 className="text-lg font-semibold">📄 Documents</h2>
 
             {/* Upload Form */}
-            <Card>
+            <Card className="bg-neutral-100">
               <CardContent className="pt-4 flex flex-col gap-4">
-
                 <div className="flex flex-col gap-2">
-                  <Label>Title *</Label>
+                  <Label className="text-muted-foreground">
+                    Document Type <span className="text-red-600">*</span>
+                  </Label>
                   <Input
-                    placeholder="Ex. My CV"
+                    className="bg-white"
+                    placeholder="e.g. My CV"
                     value={fileTitle}
                     onChange={(e) => setFileTitle(e.target.value)}
                   />
                 </div>
 
                 <div className="flex flex-col gap-2">
-                  <Label>Description</Label>
+                  <Label className="text-muted-foreground">Description</Label>
                   <Input
+                    className="bg-white"
                     placeholder="Optional description"
                     value={fileDescription}
                     onChange={(e) => setFileDescription(e.target.value)}
@@ -301,17 +317,25 @@ export default function UploadPage() {
                 </div>
 
                 <div className="flex flex-col gap-2">
-                  <Label>File (PDF, DOC, DOCX)</Label>
+                  <Label className="text-muted-foreground">
+                    File <span className="text-red-600">*</span>
+                  </Label>
                   <Input
+                    className="bg-white"
                     type="file"
                     accept=".pdf,.doc,.docx"
-                    onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
+                    onChange={(e) =>
+                      setSelectedFile(e.target.files?.[0] || null)
+                    }
                   />
                   {selectedFile && (
                     <p className="text-xs text-muted-foreground">
                       {selectedFile.name} ({formatFileSize(selectedFile.size)})
                     </p>
                   )}
+                  <span className="text-sm text-muted-foreground">
+                    ( pdf, doc, docx )
+                  </span>
                 </div>
 
                 {fileError && (
@@ -322,7 +346,7 @@ export default function UploadPage() {
                 )}
 
                 <Button
-                  className="w-full"
+                  className="w-full p-5"
                   onClick={handleFileUpload}
                   disabled={uploadingFile}
                 >
@@ -331,9 +355,10 @@ export default function UploadPage() {
                       <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                       Uploading...
                     </div>
-                  ) : "Upload Document"}
+                  ) : (
+                    "Upload Document"
+                  )}
                 </Button>
-
               </CardContent>
             </Card>
 
@@ -350,41 +375,46 @@ export default function UploadPage() {
                   <Card key={file.id}>
                     <CardContent className="pt-4">
                       <div className="flex justify-between items-start gap-2">
-
+                        <div className="bg-neutral-100 p-1.5 rounded-md">
+                          <FileText />
+                        </div>
                         <div className="flex flex-col gap-1 flex-1">
-                          <p className="font-medium text-sm">📄 {file.title}</p>
+                          <p className="font-medium text-sm"> {file.title}</p>
                           {file.description && (
                             <p className="text-xs text-muted-foreground">
                               {file.description}
                             </p>
                           )}
                           <p className="text-xs text-muted-foreground">
-                            {formatFileSize(file.file_size)} · {formatDate(file.created_at)}
+                            size: {formatFileSize(file.file_size)}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            uploaded: {formatDate(file.created_at)}
                           </p>
                         </div>
 
                         <div className="flex gap-2 shrink-0">
                           <Button
                             variant="outline"
-                            onClick={() => handleFileDownload(
-                              file.file_path,
-                              file.title
-                            )}
+                            onClick={() =>
+                              handleFileDownload(file.file_path, file.title)
+                            }
                           >
                             Download
                           </Button>
                           <Button
                             variant="outline"
-                            onClick={() => handleShowDeleteFile(
-                              file.id,
-                              file.file_path,
-                              file.title
-                            )}
+                            onClick={() =>
+                              handleShowDeleteFile(
+                                file.id,
+                                file.file_path,
+                                file.title,
+                              )
+                            }
                           >
                             Delete
                           </Button>
                         </div>
-
                       </div>
                     </CardContent>
                   </Card>
@@ -394,38 +424,48 @@ export default function UploadPage() {
           </div>
 
           {/* RIGHT — Video Links Section */}
-          <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-8">
             <h2 className="text-lg font-semibold">🎥 Video Links</h2>
 
             {/* Add Link Form */}
-            <Card>
+            <Card className="bg-neutral-100">
               <CardContent className="pt-4 flex flex-col gap-4">
-
                 <div className="flex flex-col gap-2">
-                  <Label>Title *</Label>
+                  <Label className="text-muted-foreground">
+                    Title <span className="text-red-600">*</span>
+                  </Label>
                   <Input
-                    placeholder="Ex. My Introduction Video"
+                    className="bg-white"
+                    placeholder="e.g. My Working Video"
                     value={linkTitle}
                     onChange={(e) => setLinkTitle(e.target.value)}
                   />
                 </div>
 
                 <div className="flex flex-col gap-2">
-                  <Label>Description</Label>
+                  <Label className="text-muted-foreground">Description</Label>
                   <Input
-                    placeholder="Optional description"
+                    className="bg-white"
+                    placeholder="Optional - what will viewers see"
                     value={linkDescription}
                     onChange={(e) => setLinkDescription(e.target.value)}
                   />
                 </div>
 
                 <div className="flex flex-col gap-2">
-                  <Label>Video URL *</Label>
+                  <Label className="text-muted-foreground">
+                    Video URL <span className="text-red-600">*</span>
+                  </Label>
                   <Input
+                    className="bg-white"
                     placeholder="Ex. https://drive.google.com/..."
                     value={linkUrl}
                     onChange={(e) => setLinkUrl(e.target.value)}
                   />
+                  <span className="text-sm text-muted-foreground">
+                    Youtube, Vimeo, Google Drive, or any direct
+                    URL
+                  </span>
                 </div>
 
                 {linkError && (
@@ -436,7 +476,7 @@ export default function UploadPage() {
                 )}
 
                 <Button
-                  className="w-full"
+                  className="w-full p-5"
                   onClick={handleAddLink}
                   disabled={savingLink}
                 >
@@ -445,9 +485,10 @@ export default function UploadPage() {
                       <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                       Saving...
                     </div>
-                  ) : "Add Video Link"}
+                  ) : (
+                    "Add Video Link"
+                  )}
                 </Button>
-
               </CardContent>
             </Card>
 
@@ -464,9 +505,11 @@ export default function UploadPage() {
                   <Card key={link.id}>
                     <CardContent className="pt-4">
                       <div className="flex justify-between items-start gap-2">
-
+                        <div className="bg-neutral-100 p-1.5 rounded-md">
+                          <Video />
+                        </div>
                         <div className="flex flex-col gap-1 flex-1">
-                          <p className="font-medium text-sm">🎥 {link.title}</p>
+                          <p className="font-medium text-sm">{link.title}</p>
                           {link.description && (
                             <p className="text-xs text-muted-foreground">
                               {link.description}
@@ -488,11 +531,12 @@ export default function UploadPage() {
                         <Button
                           variant="outline"
                           className="shrink-0"
-                          onClick={() => handleShowDeleteLink(link.id, link.title)}
+                          onClick={() =>
+                            handleShowDeleteLink(link.id, link.title)
+                          }
                         >
                           Delete
                         </Button>
-
                       </div>
                     </CardContent>
                   </Card>
@@ -500,22 +544,20 @@ export default function UploadPage() {
               </div>
             )}
           </div>
-
         </div>
 
         {/* Delete Confirmation Modal */}
         {deleteModal.show && (
           <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
             <div className="bg-card rounded-xl w-full max-w-sm p-6 flex flex-col gap-4">
-
               <h2 className="text-lg font-semibold">Delete Confirmation</h2>
 
               <p className="text-sm text-muted-foreground">
                 Are you sure you want to delete{" "}
                 <span className="font-medium text-foreground">
                   "{deleteModal.title}"
-                </span>?
-                This action cannot be undone.
+                </span>
+                ? This action cannot be undone.
               </p>
 
               <div className="flex gap-2">
@@ -528,7 +570,7 @@ export default function UploadPage() {
                   Cancel
                 </Button>
                 <Button
-                  className="flex-1 bg-red-500 hover:bg-red-600 text-white"
+                  className="flex-1 bg-red-700 hover:bg-red-800 text-white"
                   onClick={handleConfirmDelete}
                   disabled={deleting}
                 >
@@ -537,7 +579,9 @@ export default function UploadPage() {
                       <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                       Deleting...
                     </div>
-                  ) : "Delete"}
+                  ) : (
+                    "Delete"
+                  )}
                 </Button>
               </div>
             </div>
@@ -545,5 +589,5 @@ export default function UploadPage() {
         )}
       </main>
     </div>
-  )
+  );
 }

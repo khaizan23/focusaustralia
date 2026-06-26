@@ -40,7 +40,7 @@ export default function EmployerDashboard() {
         .from("profiles")
         .select("*", { count: "exact", head: true })
         .eq("role", "client")
-        .eq("status", "available");
+        .eq("status", "Available");
 
       setTotalCandidates(count || 0);
       setLoading(false);
@@ -77,28 +77,28 @@ export default function EmployerDashboard() {
 
         {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-          <Card>
+          <Card className="p-2 bg-green-100 border border-green-300">
             <CardHeader>
               <CardTitle className="text-sm font-medium text-muted-foreground">
                 Available Candidates
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-3xl font-bold">{totalCandidates}</p>
+              <p className="text-3xl font-bold text-green-600">{totalCandidates}</p>
               <p className="text-xs text-muted-foreground mt-1">
                 Candidates ready for hire
               </p>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="p-2 bg-violet-100 border border-violet-300">
             <CardHeader>
               <CardTitle className="text-sm font-medium text-muted-foreground">
                 Company
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-lg font-semibold">
+              <p className="text-lg font-semibold text-violet-600">
                 {profile?.company_name || "—"}
               </p>
               <p className="text-xs text-muted-foreground mt-1">
@@ -107,14 +107,14 @@ export default function EmployerDashboard() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="p-2 bg-orange-100 border border-orange-300">
             <CardHeader>
               <CardTitle className="text-sm font-medium text-muted-foreground">
                 Industry
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-lg font-semibold">
+              <p className="text-lg font-semibold text-orange-600">
                 {profile?.industry || "—"}
               </p>
               <p className="text-xs text-muted-foreground mt-1">
@@ -125,7 +125,7 @@ export default function EmployerDashboard() {
         </div>
 
         {/* Company Info Card */}
-        <Card>
+        <Card className="p-4">
           <CardHeader>
             <CardTitle>Company Information</CardTitle>
           </CardHeader>

@@ -7,7 +7,15 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/lib/supabase";
 import SidebarNav from "@/components/ui/sidebar-nav";
-import { Pen, Save, Loader } from "lucide-react";
+import {
+  Pen,
+  Save,
+  Loader,
+  ChartNoAxesGantt,
+  User,
+  MapPin,
+} from "lucide-react";
+import { Separator } from "@/components/ui/separator";
 
 interface Profile {
   id: string;
@@ -166,6 +174,13 @@ export default function ClientDashboard() {
       avatar_url: avatarUrl,
     };
 
+    const POSITIONS = [
+      "Barber",
+      "Vehicle Spray Painter",
+      "Landscape Gardener",
+      "Mechanical Fitter",
+    ];
+
     const { error: updateError } = await supabase
       .from("profiles")
       .update(updates)
@@ -211,78 +226,90 @@ export default function ClientDashboard() {
     <div className="flex">
       <SidebarNav role="client" />
 
-      <main className="flex-1 p-8 bg-neutral-50">
-        <h1 className="text-2xl font-bold mb-6">Set up your Profile</h1>
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <main className="flex-1 p-5 md:p-10 bg-neutral-50">
+        <h1 className="text-2xl font-semibold">Set up your Profile</h1>
+        <p className="mb-10 text-sm text-muted-foreground">
+          Keep your profile information up to date
+        </p>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
           {/* Profile Photo Card */}
-          <Card className="lg:col-span-1 py-4">
-            <CardHeader>
-              <CardTitle>Profile Photo</CardTitle>
-            </CardHeader>
-            <CardContent className="flex flex-col items-center gap-4">
-              {/* Avatar */}
-              <div className="relative w-32 h-32 rounded-full overflow-hidden bg-muted border">
-                {avatarPreview || profile?.avatar_url ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={avatarPreview || profile?.avatar_url || ""}
-                    alt="Profile"
-                    className="w-full h-full object-cover"
+          <div className="flex flex-col gap-5">
+            <Card className="lg:col-span-1 relative rounded-2xl">
+              <div className="bg-neutral-200 h-30 absolute w-full"></div>
+              <CardContent className="flex flex-col items-center gap-4 mb-5">
+                {/* Avatar */}
+                <div className="relative w-32 h-32 mt-10 rounded-full overflow-hidden bg-muted border-5 border-white">
+                  {avatarPreview || profile?.avatar_url ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={avatarPreview || profile?.avatar_url || ""}
+                      alt="Profile"
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <span className="text-4xl text-muted-foreground">
+                        {profile?.full_name?.charAt(0).toUpperCase()}
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                {editing && (
+                  <Input
+                    className="md:w-[50%] hover:bg-black/5"
+                    type="file"
+                    accept=".jpg,.jpeg,.png"
+                    onChange={handleAvatarChange}
                   />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center">
-                    <span className="text-4xl text-muted-foreground">
-                      {profile?.full_name?.charAt(0).toUpperCase()}
-                    </span>
-                  </div>
                 )}
-              </div>
 
-              {editing && (
-                <Input
-                className="md:w-[50%] hover:bg-black/5"
-                  type="file"
-                  accept=".jpg,.jpeg,.png"
-                  onChange={handleAvatarChange}
-                />
-              )}
-
-              {/* Basic Info */}
-              <div className="text-center">
-                <p className="font-semibold text-lg">{profile?.full_name}</p>
-                <p className="text-sm text-muted-foreground">
-                  {profile?.email}
-                </p>
-                <p className="text-sm text-muted-foreground capitalize">
-                  {profile?.role}:{" "}
-                  <span className="text-xs border px-2 py-0.5 rounded-2xl bg-green-200">
-                    {profile?.status}
-                  </span>
-                </p>
-              </div>
-              {/* Bio */}
-              <div className="flex w-full flex-col gap-2 md:col-span-2">
-                <Label>About</Label>
-                {editing ? (
-                  <textarea
-                    placeholder="Tell us about yourself"
-                    value={form.bio}
-                    onChange={(e) => handleFormChange("bio", e.target.value)}
-                    className="w-full rounded-lg border border-input bg-transparent px-2.5 py-2 text-sm min-h-25"
-                  />
-                ) : (
-                  <p className="border rounded-lg min-h-25 text-sm px-2.5 py-2">
-                    {profile?.bio || "—"}
+                {/* Basic Info */}
+                <div className="text-center flex gap-2 flex-col">
+                  <p className="font-semibold text-lg">{profile?.full_name}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {profile?.email}
                   </p>
-                )}
-              </div>
-            </CardContent>
-          </Card>
+                  <p className="text-sm text-muted-foreground capitalize">
+                    {profile?.role}:{" "}
+                    <span className="text-xs border px-2 py-0.5 rounded-2xl font-medium text-green-600 bg-green-100">
+                      {profile?.status}
+                    </span>
+                  </p>
+                </div>
+                
+              </CardContent>
+            </Card>
+            <div className="bg-white border-neutral-300 rounded-2xl flex flex-col gap-5 border px-5 py-5">
+              <Label>
+                {" "}
+                <ChartNoAxesGantt size={16} />
+                About
+              </Label>
+              {editing ? (
+                <textarea
+                  placeholder="Tell us about yourself"
+                  value={form.bio}
+                  onChange={(e) => handleFormChange("bio", e.target.value)}
+                  className="w-full text-sm min-h-25 bg-neutral-100"
+                />
+              ) : (
+                <p className="rounded-lg min-h-25 text-sm">
+                  {profile?.bio || "—"}
+                </p>
+              )}
+            </div>
+          </div>
 
           {/* Profile Details Card */}
-          <Card className="lg:col-span-2 py-4">
+          <Card className="lg:col-span-2 p-5 rounded-2xl">
             <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle>Profile Details</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                <div className="bg-neutral-100 p-1 rounded-md">
+                  <User className="text-muted-foreground" />
+                </div>
+                Profile Details
+              </CardTitle>
               {!editing ? (
                 <Button variant="outline" onClick={() => setEditing(true)}>
                   <Pen />
@@ -297,17 +324,18 @@ export default function ClientDashboard() {
                     {/* <Save />{saving ? "Saving..." : "Save Changes"} */}
                     {saving ? (
                       <>
-                      <Loader /> Saving...
+                        <Loader /> Saving...
                       </>
                     ) : (
                       <>
-                      <Save/> Save Changes
+                        <Save /> Save Changes
                       </>
                     )}
                   </Button>
                 </div>
               )}
             </CardHeader>
+            <Separator />
 
             <CardContent>
               {success && (
@@ -315,10 +343,10 @@ export default function ClientDashboard() {
               )}
               {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 {/* Full Name */}
                 <div className="flex flex-col gap-2">
-                  <Label>Full Name:</Label>
+                  <Label className="text-muted-foreground">FULL NAME</Label>
                   {editing ? (
                     <Input
                       value={form.full_name}
@@ -333,7 +361,7 @@ export default function ClientDashboard() {
 
                 {/* Email */}
                 <div className="flex flex-col gap-2">
-                  <Label>Email:</Label>
+                  <Label className="text-muted-foreground">EMAIL</Label>
                   <p className="text-sm text-muted-foreground">
                     {profile?.email}
                   </p>
@@ -341,7 +369,7 @@ export default function ClientDashboard() {
 
                 {/* Phone */}
                 <div className="flex flex-col gap-2">
-                  <Label>Phone Number:</Label>
+                  <Label className="text-muted-foreground">PHONE NUMBER</Label>
                   {editing ? (
                     <Input
                       placeholder="Enter phone number"
@@ -357,7 +385,7 @@ export default function ClientDashboard() {
 
                 {/* Gender */}
                 <div className="flex flex-col gap-2">
-                  <Label>Gender:</Label>
+                  <Label className="text-muted-foreground">GENDER</Label>
                   {editing ? (
                     <select
                       value={form.gender}
@@ -380,7 +408,7 @@ export default function ClientDashboard() {
 
                 {/* Birthdate */}
                 <div className="flex flex-col gap-2">
-                  <Label>Birthdate:</Label>
+                  <Label className="text-muted-foreground">BIRTHDATE</Label>
                   {editing ? (
                     <Input
                       type="date"
@@ -407,7 +435,7 @@ export default function ClientDashboard() {
 
                 {/* Height */}
                 <div className="flex flex-col gap-2">
-                  <Label>Height (cm):</Label>
+                  <Label className="text-muted-foreground">HEIGHT (cm)</Label>
                   {editing ? (
                     <Input
                       type="number"
@@ -426,7 +454,7 @@ export default function ClientDashboard() {
 
                 {/* Weight */}
                 <div className="flex flex-col gap-2">
-                  <Label>Weight (kg):</Label>
+                  <Label className="text-muted-foreground">WEIGHT (kg)</Label>
                   {editing ? (
                     <Input
                       type="number"
@@ -443,7 +471,7 @@ export default function ClientDashboard() {
                   )}
                 </div>
                 <div className="flex flex-col gap-2">
-                  <Label>Position:</Label>
+                  <Label className="text-muted-foreground">POSITION</Label>
                   {editing ? (
                     <select
                       value={form.position}
@@ -452,6 +480,7 @@ export default function ClientDashboard() {
                       }
                       className="h-8 w-full rounded-lg border border-input bg-transparent px-2.5 text-sm"
                     >
+                      
                       <option value="">Select Position</option>
                       <option value="Barber">Barber</option>
                       <option value="Vehicle Spray Painter">
@@ -471,9 +500,11 @@ export default function ClientDashboard() {
                   )}
                 </div>
 
+                <Separator className="flex flex-col md:col-span-2" />
+
                 {/* Address */}
                 <div className="flex flex-col gap-2 md:col-span-2">
-                  <Label>Address:</Label>
+                  <Label className="text-muted-foreground">ADDRESS</Label>
                   {editing ? (
                     <Input
                       placeholder="Enter address"
@@ -483,7 +514,10 @@ export default function ClientDashboard() {
                       }
                     />
                   ) : (
-                    <p className="text-sm">{profile?.address || "—"}</p>
+                    <p className="text-sm flex items-center gap-1">
+                      <MapPin size={16} />
+                      {profile?.address || "—"}
+                    </p>
                   )}
                 </div>
               </div>

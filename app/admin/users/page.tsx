@@ -1,6 +1,7 @@
 "use client"
 
-import { useEffect, useState, useCallback } from "react"
+import { createPortal } from "react-dom";
+import { useEffect, useState, useRef, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { supabase } from "@/lib/supabase"
@@ -11,6 +12,7 @@ import {
   Eye,  
   TrashIcon,
   Download,
+  FileClock,
 } from "lucide-react";
 
 interface Profile {
@@ -63,23 +65,29 @@ interface Experience {
 }
 
 export default function UsersPage() {
-  const [users, setUsers] = useState<Profile[]>([])
-  const [filteredUsers, setFilteredUsers] = useState<Profile[]>([])
-  const [loading, setLoading] = useState(true)
-  const [search, setSearch] = useState("")
+  const [users, setUsers] = useState<Profile[]>([]);
+  const [filteredUsers, setFilteredUsers] = useState<Profile[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
   const [userExperiences, setUserExperiences] = useState<Experience[]>([]);
 
   // View Profile Modal
-  const [viewModal, setViewModal] = useState(false)
-  const [selectedUser, setSelectedUser] = useState<Profile | null>(null)
-  const [userFiles, setUserFiles] = useState<ClientFile[]>([])
-  const [userLinks, setUserLinks] = useState<VideoLink[]>([])
-  const [loadingProfile, setLoadingProfile] = useState(false)
+  const [viewModal, setViewModal] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<Profile | null>(null);
+  const [userFiles, setUserFiles] = useState<ClientFile[]>([]);
+  const [userLinks, setUserLinks] = useState<VideoLink[]>([]);
+  const [loadingProfile, setLoadingProfile] = useState(false);
 
   // Delete Modal
-  const [deleteModal, setDeleteModal] = useState(false)
-  const [userToDelete, setUserToDelete] = useState<Profile | null>(null)
-  const [deleting, setDeleting] = useState(false)
+  const [deleteModal, setDeleteModal] = useState(false);
+  const [userToDelete, setUserToDelete] = useState<Profile | null>(null);
+  const [deleting, setDeleting] = useState(false);
+
+  // Status Modal
+  const [statusModal, setStatusModal] = useState(false);
+  const [userToSetStatus, setUserToSetStatus] = useState<Profile | null>(null);
+  const [settingStatus, setSettingStatus] = useState(false);
+  const [selectedStatus, setSelectedStatus] = useState<string>("");
 
   useEffect(() => {
     async function fetchUsers() {
@@ -87,31 +95,34 @@ export default function UsersPage() {
         .from("profiles")
         .select("*")
         .eq("role", "client")
-        .order("created_at", { ascending: false })
+        .order("created_at", { ascending: false });
 
       if (!error && data) {
-        setUsers(data)
-        setFilteredUsers(data)
+        setUsers(data);
+        setFilteredUsers(data);
       }
 
-      setLoading(false)
+      setLoading(false);
     }
 
-    fetchUsers()
-  }, [])
+    fetchUsers();
+  }, []);
 
   // Search handler
-  const handleSearch = useCallback((value: string) => {
-    setSearch(value)
-    if (!value.trim()) {
-      setFilteredUsers(users)
-      return
-    }
-    const filtered = users.filter((user) =>
-      user.full_name?.toLowerCase().includes(value.toLowerCase())
-    )
-    setFilteredUsers(filtered)
-  }, [users])
+  const handleSearch = useCallback(
+    (value: string) => {
+      setSearch(value);
+      if (!value.trim()) {
+        setFilteredUsers(users);
+        return;
+      }
+      const filtered = users.filter((user) =>
+        user.full_name?.toLowerCase().includes(value.toLowerCase()),
+      );
+      setFilteredUsers(filtered);
+    },
+    [users],
+  );
 
   // View Profile
   const handleViewProfile = useCallback(async (user: Profile) => {
@@ -147,29 +158,66 @@ export default function UsersPage() {
     if (expData) setUserExperiences(expData);
 
     setLoadingProfile(false);
-  }, [])
+  }, []);
+
+  const handleShowSetStatus = useCallback((user: Profile) => {
+    setUserToSetStatus(user);
+    setSelectedStatus(user.status || "TBA");
+    setStatusModal(true);
+  }, []);
+
+  const handleConfirmSetStatus = useCallback(async () => {
+    if (!userToSetStatus) return;
+    setSettingStatus(true);
+
+    const { error } = await supabase
+      .from("profiles")
+      .update({ status: selectedStatus })
+      .eq("id", userToSetStatus.id);
+
+    if (!error) {
+      // I-update ang local state
+      setUsers((prev) =>
+        prev.map((u) =>
+          u.id === userToSetStatus.id ? { ...u, status: selectedStatus } : u,
+        ),
+      );
+      setFilteredUsers((prev) =>
+        prev.map((u) =>
+          u.id === userToSetStatus.id ? { ...u, status: selectedStatus } : u,
+        ),
+      );
+    }
+
+    setSettingStatus(false);
+    setStatusModal(false);
+    setUserToSetStatus(null);
+  }, [userToSetStatus, selectedStatus]);
 
   // Download file
-  const handleDownload = useCallback(async (filePath: string, title: string) => {
-    const { data, error } = await supabase.storage
-      .from("videos")
-      .download(filePath)
+  const handleDownload = useCallback(
+    async (filePath: string, title: string) => {
+      const { data, error } = await supabase.storage
+        .from("videos")
+        .download(filePath);
 
-    if (error) return
+      if (error) return;
 
-    const url = URL.createObjectURL(data)
-    const a = document.createElement("a")
-    a.href = url
-    a.download = title
-    a.click()
-    URL.revokeObjectURL(url)
-  }, [])
+      const url = URL.createObjectURL(data);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = title;
+      a.click();
+      URL.revokeObjectURL(url);
+    },
+    [],
+  );
 
   // Show delete confirmation
   const handleShowDelete = useCallback((user: Profile) => {
-    setUserToDelete(user)
-    setDeleteModal(true)
-  }, [])
+    setUserToDelete(user);
+    setDeleteModal(true);
+  }, []);
 
   // Confirm delete
   const handleConfirmDelete = useCallback(async () => {
@@ -180,7 +228,13 @@ export default function UsersPage() {
     const {
       data: { user: adminUser },
     } = await supabase.auth.getUser();
-    if (!adminUser) return;
+    if (!adminUser) 
+    {
+      setDeleting(false);
+      setDeleteModal(false);
+      alert("Session expired. Please log in again.");
+      return;
+    }
 
     const { data: adminProfile } = await supabase
       .from("profiles")
@@ -242,37 +296,41 @@ export default function UsersPage() {
   }, [userToDelete]);
 
   function calculateAge(birthdate: string | null) {
-    if (!birthdate) return null
-    const today = new Date()
-    const birth = new Date(birthdate)
-    let age = today.getFullYear() - birth.getFullYear()
-    const m = today.getMonth() - birth.getMonth()
-    if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--
-    return age
+    if (!birthdate) return null;
+    const today = new Date();
+    const birth = new Date(birthdate);
+    let age = today.getFullYear() - birth.getFullYear();
+    const m = today.getMonth() - birth.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
+    return age;
   }
 
   function formatDate(dateString: string | null) {
-    if (!dateString) return "—"
+    if (!dateString) return "—";
     return new Date(dateString).toLocaleDateString("en-AU", {
       year: "numeric",
       month: "long",
       day: "numeric",
-    })
+    });
   }
 
   function formatFileSize(bytes: number) {
-    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(2)} KB`
-    return `${(bytes / (1024 * 1024)).toFixed(2)} MB`
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(2)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
   }
 
   return (
     <div className="flex">
       <SidebarNav role="admin" />
 
-      <main className="flex-1 p-8 bg-neutral-50">
+      <main className="flex-1 p-8 bg-neutral-50 overflow-hidden">
+        <h1 className="text-2xl font-bold">Users</h1>
+        <p className="mb-10 text-sm text-muted-foreground">
+          Manage all registered candidates and their information
+        </p>
         {/* Table */}
-        <div className="rounded-xl border">
-          <div className="flex justify-between px-5 py-3 bg-red-900 rounded-t-xl">
+        {/* <div className="rounded-xl"> */}
+          {/* <div className="flex justify-between px-5 py-3 bg-red-900 rounded-t-xl">
             <div className="text-md text-white">
               <span className="font-light text-sm">👥 Total Candidates:</span>{" "}
               {filteredUsers.length} candidates
@@ -285,113 +343,127 @@ export default function UsersPage() {
                 onChange={(e) => handleSearch(e.target.value)}
               />
             </div>
-          </div>
-
-          {loading ? (
-            <div className="flex w-full max-w-xs flex-col gap-7 my-5 mx-10">
-              <div className="flex flex-col gap-3">
-                <Skeleton className="h-4 w-20" />
-                <Skeleton className="h-8 w-full" />
+          </div> */}
+          <div className="overflow-x-auto border rounded-xl">
+            {loading ? (
+              <div className="flex w-full max-w-xs flex-col gap-7 my-5 mx-10">
+                <div className="flex flex-col gap-3">
+                  <Skeleton className="h-4 w-20" />
+                  <Skeleton className="h-8 w-full" />
+                </div>
+                <div className="flex flex-col gap-3">
+                  <Skeleton className="h-4 w-24" />
+                  <Skeleton className="h-8 w-full" />
+                </div>
+                <Skeleton className="h-8 w-24" />
               </div>
-              <div className="flex flex-col gap-3">
-                <Skeleton className="h-4 w-24" />
-                <Skeleton className="h-8 w-full" />
+            ) : // <p className="text-muted-foreground">Loading users...</p>
+            filteredUsers.length === 0 ? (
+              <div className="flex justify-center items-center p-10 bg-black/5 min-h-80">
+                <p className="text-muted-foreground">No users found.</p>
               </div>
-              <Skeleton className="h-8 w-24" />
-            </div>
-          ) : // <p className="text-muted-foreground">Loading users...</p>
-          filteredUsers.length === 0 ? (
-            <div className="flex justify-center items-center p-10 bg-black/5 min-h-80">
-              <p className="text-muted-foreground">No users found.</p>
-            </div>
-          ) : (
-            <table className="w-full text-sm">
-              {/* Table Header */}
-              <thead className="bg-muted">
-                <tr>
-                  <th className="text-left px-4 py-3 font-medium">Name</th>
-                  <th className="text-left px-4 py-3 font-medium">Status</th>
-                  <th className="text-left px-4 py-3 font-medium">Position</th>
-                  <th className="text-left px-4 py-3 font-medium">Email</th>
-                  <th className="text-left px-4 py-3 font-medium">Phone</th>
-                  <th className="text-left px-4 py-3 font-medium">Birthdate</th>
-                  <th className="text-left px-4 py-3 font-medium">Gender</th>
-                  <th className="px-4 py-3 font-medium">Actions</th>
-                </tr>
-              </thead>
-
-              {/* Table Body */}
-              <tbody>
-                {filteredUsers.map((user, index) => (
-                  <tr
-                    key={user.id}
-                    className={
-                      index % 2 === 0 ? "bg-background" : "bg-muted/40"
-                    }
-                  >
-                    {/* Name with Avatar */}
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full overflow-hidden bg-muted border shrink-0">
-                          {user.avatar_url ? (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img
-                              src={user.avatar_url}
-                              alt={user.full_name}
-                              className="w-full h-full object-cover"
-                            />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center">
-                              <span className="text-xs text-muted-foreground font-medium">
-                                {user.full_name?.charAt(0).toUpperCase()}
-                              </span>
-                            </div>
-                          )}
-                        </div>
-                        <span className="font-medium">{user.full_name}</span>
-                      </div>
-                    </td>
-
-                    {/* Status Badge */}
-                    <td className="px-4 py-3">
-                      <span className="px-2 py-1 rounded-full border text-xs font-medium bg-green-100 text-green-700">
-                        {user.status || "TBA"}
-                      </span>
-                    </td>
-
-                    {/* Position */}
-                    <td className="px-4 py-3 text-muted-foreground">
-                      {user.position || "TBA"}
-                    </td>
-
-                    <td className="px-4 py-3 text-muted-foreground">
-                      {user.email}
-                    </td>
-                    <td className="px-4 py-3 text-muted-foreground">
-                      {user.phone || "—"}
-                    </td>
-                    <td className="px-4 py-3 text-muted-foreground">
-                      {user.birthdate
-                        ? `${formatDate(user.birthdate)} (${calculateAge(user.birthdate)} yrs)`
-                        : "—"}
-                    </td>
-                    <td className="px-4 py-3 text-muted-foreground capitalize">
-                      {user.gender || "—"}
-                    </td>
-
-                    {/* Actions — 3 dots */}
-                    <td className="px-4 py-3">
-                      <ActionMenu
-                        onView={() => handleViewProfile(user)}
-                        onDelete={() => handleShowDelete(user)}
-                      />
-                    </td>
+            ) : (
+              <table className="w-full text-sm">
+                {/* Table Header */}
+                <thead className="bg-muted">
+                  <tr>
+                    <th className="text-left px-4 py-3 font-medium">Name</th>
+                    <th className="text-left px-4 py-3 font-medium">Status</th>
+                    <th className="text-left px-4 py-3 font-medium">
+                      Position
+                    </th>
+                    <th className="text-left px-4 py-3 font-medium">Email</th>
+                    <th className="text-left px-4 py-3 font-medium">Phone</th>
+                    <th className="text-left px-4 py-3 font-medium">
+                      Birthdate
+                    </th>
+                    <th className="text-left px-4 py-3 font-medium">Gender</th>
+                    <th className="px-4 py-3 font-medium">Actions</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-        </div>
+                </thead>
+
+                {/* Table Body */}
+                <tbody>
+                  {filteredUsers.map((user, index) => (
+                    <tr
+                      key={user.id}
+                      className={
+                        index % 2 === 0 ? "bg-background" : "bg-muted/40"
+                      }
+                    >
+                      {/* Name with Avatar */}
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-full overflow-hidden bg-muted border shrink-0">
+                            {user.avatar_url ? (
+                              // eslint-disable-next-line @next/next/no-img-element
+                              <img
+                                src={user.avatar_url}
+                                alt={user.full_name}
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center">
+                                <span className="text-xs text-muted-foreground font-medium">
+                                  {user.full_name?.charAt(0).toUpperCase()}
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                          <span className="font-medium">{user.full_name}</span>
+                        </div>
+                      </td>
+
+                      {/* Status Badge */}
+                      <td className="px-4 py-3">
+                        <span
+                          className={`px-2 py-1 rounded-full text-xs whitespace-nowrap font-medium ${
+                            user.status === "Available"
+                              ? "bg-green-100 text-green-700"
+                              : user.status === "Not Available"
+                                ? "bg-red-100 text-red-700"
+                                : "bg-black/15 text-muted-foreground"
+                          }`}
+                        >
+                          {user.status || "TBA"}
+                        </span>
+                      </td>
+
+                      {/* Position */}
+                      <td className="px-4 py-3 text-muted-foreground">
+                        {user.position || "TBA"}
+                      </td>
+
+                      <td className="px-4 py-3 text-muted-foreground">
+                        {user.email}
+                      </td>
+                      <td className="px-4 py-3 text-muted-foreground">
+                        {user.phone || "—"}
+                      </td>
+                      <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">
+                        {user.birthdate
+                          ? `${formatDate(user.birthdate)} (${calculateAge(user.birthdate)} yrs)`
+                          : "—"}
+                      </td>
+                      <td className="px-4 py-3 text-muted-foreground capitalize">
+                        {user.gender || "—"}
+                      </td>
+
+                      {/* Actions — 3 dots */}
+                      <td className="px-4 py-3">
+                        <ActionMenu
+                          onView={() => handleViewProfile(user)}
+                          onDelete={() => handleShowDelete(user)}
+                          onSetStatus={() => handleShowSetStatus(user)}
+                        />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
+        {/* </div> */}
         {/* View Profile Modal */}
         {viewModal && selectedUser && (
           <div className="fixed inset-0 bg-black/80 z-10 flex items-center justify-center p-4">
@@ -663,7 +735,7 @@ export default function UsersPage() {
                   Cancel
                 </Button>
                 <Button
-                  className="flex-1 bg-red-500 hover:bg-red-600 text-white"
+                  className="flex-1 bg-red-800 hover:bg-red-900 text-white"
                   onClick={handleConfirmDelete}
                   disabled={deleting}
                 >
@@ -680,6 +752,73 @@ export default function UsersPage() {
             </div>
           </div>
         )}
+        {/* Set Status Modal */}
+        {statusModal && userToSetStatus && (
+          <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
+            <div className="bg-card rounded-xl w-full max-w-sm p-6 flex flex-col gap-4">
+              <h2 className="text-lg font-semibold">Set Client Status</h2>
+
+              <p className="text-sm text-muted-foreground">
+                Set status for{" "}
+                <span className="font-medium text-foreground">
+                  {userToSetStatus.full_name}
+                </span>
+              </p>
+
+              {/* Status Options */}
+              <div className="flex flex-col gap-2">
+                {["Available", "Not Available", "TBA"].map((status) => (
+                  <button
+                    key={status}
+                    onClick={() => setSelectedStatus(status)}
+                    className={`flex items-center gap-3 p-3 rounded-lg border text-sm transition-colors ${
+                      selectedStatus === status
+                        ? "bg-red-900 text-primary-foreground border-primary"
+                        : "hover:bg-neutral-200 hover:border-border"
+                    }`}
+                  >
+                    <span>
+                      {status === "Available"
+                        ? "✅"
+                        : status === "Not Available"
+                          ? "❌"
+                          : "⏳"}
+                    </span>
+                    {status}
+                  </button>
+                ))}
+              </div>
+
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  className="flex-1"
+                  onClick={() => {
+                    setStatusModal(false);
+                    setUserToSetStatus(null);
+                  }}
+                  disabled={settingStatus}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  className="flex-1"
+                  onClick={handleConfirmSetStatus}
+                  disabled={settingStatus}
+                >
+                  {settingStatus ? (
+                    <div className="flex items-center gap-2">
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      Saving...
+                    </div>
+                  ) : (
+                    "Save Status"
+                  )}
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
       </main>
     </div>
   );
@@ -689,16 +828,48 @@ export default function UsersPage() {
 function ActionMenu({
   onView,
   onDelete,
+  onSetStatus,
 }: {
   onView: () => void
   onDelete: () => void
+  onSetStatus: () => void
 }) {
   const [open, setOpen] = useState(false)
+  const [position, setPosition] = useState({ top: 0, left: 0 });
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const menuWidth = 192; // w-48 = 12rem = 192px
+
+  const updatePosition = useCallback(() => {
+    if (!buttonRef.current) return;
+    const rect = buttonRef.current.getBoundingClientRect();
+    setPosition({
+      top: rect.bottom + 4, // 4px gap below button
+      left: rect.right - menuWidth, // align right edge ng menu sa button
+    });
+  }, []);
+
+  const handleToggle = () => {
+    if (!open) updatePosition();
+    setOpen((prev) => !prev);
+  };
+
+  // Update position kapag nag-scroll o nag-resize habang bukas ang menu
+  useEffect(() => {
+    if (!open) return;
+    const handle = () => updatePosition();
+    window.addEventListener("scroll", handle, true);
+    window.addEventListener("resize", handle);
+    return () => {
+      window.removeEventListener("scroll", handle, true);
+      window.removeEventListener("resize", handle);
+    };
+  }, [open, updatePosition]);
 
   return (
     <div className="relative flex justify-center">
       <button
-        onClick={() => setOpen(!open)}
+        ref={buttonRef}
+        onClick={handleToggle}
         className="p-2 rounded-lg hover:bg-muted transition-colors"
       >
         <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
@@ -708,41 +879,59 @@ function ActionMenu({
         </svg>
       </button>
 
-      {open && (
-        <>
-          {/* Backdrop */}
-          <div
-            className="fixed inset-0 z-1 bg-black/20"
-            onClick={() => setOpen(false)}
-          />
+      {open &&
+        createPortal(
+          <>
+            {/* Backdrop */}
+            <div
+              className="fixed inset-0 z-40 bg-black/20"
+              onClick={() => setOpen(false)}
+            />
 
-          {/* Menu */}
-          <div className="absolute right-10 px-1 top-8 z-50 bg-card border rounded-lg shadow-lg w-48 py-1">
-            <button
-              onClick={() => {
-                onView();
-                setOpen(false);
+            {/* Menu — fixed positioning, based sa button rect */}
+            <div
+              style={{
+                position: "fixed",
+                top: position.top,
+                left: position.left,
+                width: menuWidth,
               }}
-              className="w-full text-left px-4 py-2 text-sm hover:bg-muted transition-colors rounded-lg flex items-center gap-1"
+              className="z-50 bg-card border rounded-lg shadow-lg py-1"
             >
-              {/* 👁  */}
-              <Eye size={16}/>
-              View Profile
-            </button>
-            <button
-              onClick={() => {
-                onDelete();
-                setOpen(false);
-              }}
-              className="w-full text-left px-4 py-2 text-sm  hover:bg-red-100 transition-colors rounded-lg flex items-center text-red-500 gap-1"
-            >
-              {/* 🗑  */}
-              <TrashIcon size={16} />
-              Delete User
-            </button>
-          </div>
-        </>
-      )}
+              <button
+                onClick={() => {
+                  onView();
+                  setOpen(false);
+                }}
+                className="w-full text-left px-4 py-2 text-sm hover:bg-muted transition-colors rounded-lg flex items-center gap-1"
+              >
+                <Eye size={16} />
+                View Profile
+              </button>
+              <button
+                onClick={() => {
+                  onSetStatus();
+                  setOpen(false);
+                }}
+                className="w-full text-left px-4 py-2 text-sm hover:bg-muted transition-colors rounded-lg flex items-center gap-1"
+              >
+                <FileClock size={16} />
+                Set Status
+              </button>
+              <button
+                onClick={() => {
+                  onDelete();
+                  setOpen(false);
+                }}
+                className="w-full text-left px-4 py-2 text-sm hover:bg-red-100 transition-colors rounded-lg flex items-center text-red-500 gap-1"
+              >
+                <TrashIcon size={16} />
+                Delete User
+              </button>
+            </div>
+          </>,
+          document.body,
+        )}
     </div>
   );
 }

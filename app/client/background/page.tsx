@@ -334,8 +334,8 @@ export default function BackgroundPage() {
           <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
             <div className="bg-card rounded-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
               {/* Modal Header */}
-              <div className="flex justify-between items-center p-6 border-b">
-                <h2 className="text-lg font-semibold">Add Experience</h2>
+              <div className="flex justify-between items-center p-4 bg-neutral-50 border-b">
+                <h2 className="text-md font-semibold">Add Experience</h2>
                 <Button variant="outline" onClick={handleCloseModal}>
                   Close
                 </Button>

@@ -72,7 +72,7 @@ export default function CandidatesPage() {
         .from("profiles")
         .select("*")
         .eq("role", "client")
-        .eq("status", "available")
+        .eq("status", "Available")
         .order("created_at", { ascending: false })
 
       if (!error && data) {
