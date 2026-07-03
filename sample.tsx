@@ -1,132 +1,114 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { supabase } from "@/lib/supabase";
-import SidebarNav from "@/components/ui/sidebar-nav";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import LogoutButton from "@/components/ui/logout-button";
+import { cn } from "@/lib/utils";
+import {
+  LayoutDashboard,
+  Briefcase,
+  Upload,
+  Users,
+  Clock,
+  Settings,
+} from "lucide-react";
 
-interface Stats {
-  totalClients: number;
-  totalVerifiedEmployers: number;
-  totalAdmins: number;
-  totalAvailableClients: number;
+interface SidebarNavProps {
+  role: "admin" | "client" | "employer";
+}
+interface NavLink {
+  href: string;
+  label: string;
+  icon: React.ReactNode;
 }
 
-export default function AdminDashboard() {
-  const [stats, setStats] = useState<Stats>({
-    totalClients: 0,
-    totalVerifiedEmployers: 0,
-    totalAdmins: 0,
-    totalAvailableClients: 0,
-  });
-  const [loading, setLoading] = useState(true);
+const clientLinks: NavLink[] = [
+  {
+    href: "/client/dashboard",
+    label: "Dashboard",
+    icon: <LayoutDashboard size={16} />,
+  },
+  {
+    href: "/client/background",
+    label: "Background",
+    icon: <Briefcase size={16} />,
+  },
+  { href: "/client/upload", label: "Upload Files", icon: <Upload size={16} /> },
+];
 
-  useEffect(() => {
-    async function fetchStats() {
-      // Total Clients
-      const { count: totalClients } = await supabase
-        .from("profiles")
-        .select("*", { count: "exact", head: true })
-        .eq("role", "client");
+const adminLinks: NavLink[] = [
+  {
+    href: "/admin/dashboard",
+    label: "Dashboard",
+    icon: <LayoutDashboard size={16} />,
+  },
+  { href: "/admin/users", label: "Users", icon: <Users size={16} /> },
+  {
+    href: "/admin/pending-verifications",
+    label: "Pending Verifications",
+    icon: <Clock size={16} />,
+  },
+  { href: "/admin/settings", label: "Settings", icon: <Settings size={16} /> },
+];
 
-      // Total Verified Employers
-      const { count: totalVerifiedEmployers } = await supabase
-        .from("profiles")
-        .select("*", { count: "exact", head: true })
-        .eq("role", "employer")
-        .eq("verification_status", "verified");
+const employerLinks: NavLink[] = [
+  {
+    href: "/employer/dashboard",
+    label: "Dashboard",
+    icon: <LayoutDashboard size={16} />,
+  },
+  {
+    href: "/employer/candidates",
+    label: "Candidates",
+    icon: <Users size={16} />,
+  },
+  {
+    href: "/employer/settings",
+    label: "Settings",
+    icon: <Settings size={16} />,
+  },
+];
 
-      // Total Admins
-      const { count: totalAdmins } = await supabase
-        .from("profiles")
-        .select("*", { count: "exact", head: true })
-        .eq("role", "admin");
-
-      // Total Available Clients
-      const { count: totalAvailableClients } = await supabase
-        .from("profiles")
-        .select("*", { count: "exact", head: true })
-        .eq("role", "client")
-        .eq("status", "available");
-
-      setStats({
-        totalClients: totalClients || 0,
-        totalVerifiedEmployers: totalVerifiedEmployers || 0,
-        totalAdmins: totalAdmins || 0,
-        totalAvailableClients: totalAvailableClients || 0,
-      });
-
-      setLoading(false);
-    }
-
-    fetchStats();
-  }, []);
-
-  const statCards = [
-    {
-      title: "Total Clients",
-      value: stats.totalClients,
-      icon: "👤",
-      description: "Registered client accounts",
-    },
-    {
-      title: "Verified Employers",
-      value: stats.totalVerifiedEmployers,
-      icon: "🏢",
-      description: "Verified employer accounts",
-    },
-    {
-      title: "Total Admins",
-      value: stats.totalAdmins,
-      icon: "🛡️",
-      description: "Administrator accounts",
-    },
-    {
-      title: "Available Clients",
-      value: stats.totalAvailableClients,
-      icon: "✅",
-      description: "Clients ready for hire",
-    },
-  ];
+export default function SidebarNav({ role }: SidebarNavProps) {
+  const pathname = usePathname();
+  const links =
+    role === "admin"
+      ? adminLinks
+      : role === "employer"
+        ? employerLinks
+        : clientLinks;
 
   return (
-    <div className="flex">
-      <SidebarNav role="admin" />
+    <aside className="xs:w-10 md:w-64 min-h-screen bg-card border-r flex flex-col">
+      {/* Logo/Title */}
+      <div className="p-6 border-b">
+        <h1 className="text-xl font-bold">Focus Austasdralia</h1>
+        <p className="text-sm text-muted-foreground capitalize">{role}</p>
+      </div>
 
-      <main className="flex-1 p-8">
-        <h1 className="text-2xl font-bold mb-6">Admin Dashboard</h1>
+      {/* Navigation Links */}
+      <nav className="flex-1 p-4 flex flex-col gap-1">
+        {links.map((link) => (
+          <Link
+            key={link.href}
+            href={link.href}
+            className={cn(
+              "px-4 py-2 rounded-lg text-sm transition-colors flex gap-2 items-center",
+              pathname === link.href
+                ? "bg-red-900 text-primary-foreground"
+                : "hover:bg-muted text-muted-foreground hover:text-foreground",
+            )}
+          >
+            {link.icon}
+            <span>{link.label}</span>
+          </Link>
+        ))}
+      </nav>
 
-        {loading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {[...Array(4)].map((_, i) => (
-              <Card key={i}>
-                <CardContent className="pt-6">
-                  <div className="h-16 bg-muted animate-pulse rounded-lg" />
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {statCards.map((stat) => (
-              <Card key={stat.title}>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                    <span>{stat.icon}</span>
-                    {stat.title}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-3xl font-bold">{stat.value}</p>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {stat.description}
-                  </p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        )}
-      </main>
-    </div>
+      {/* Logout */}
+      <div className="p-3 border-t">
+        <LogoutButton />
+      </div>
+    </aside>
   );
 }

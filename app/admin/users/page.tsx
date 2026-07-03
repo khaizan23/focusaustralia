@@ -13,6 +13,7 @@ import {
   TrashIcon,
   Download,
   FileClock,
+  Users,
 } from "lucide-react";
 
 interface Profile {
@@ -320,17 +321,17 @@ export default function UsersPage() {
   }
 
   return (
-    <div className="flex">
+    <div className="flex bg-neutral-50">
       <SidebarNav role="admin" />
 
-      <main className="flex-1 p-8 bg-neutral-50 overflow-hidden">
+      <main className="flex-1 p-5 md:p-10 mt-10 md:mt-0 overflow-hidden">
         <h1 className="text-2xl font-bold">Users</h1>
-        <p className="mb-10 text-sm text-muted-foreground">
+        <p className="text-sm text-muted-foreground">
           Manage all registered candidates and their information
         </p>
         {/* Table */}
         {/* <div className="rounded-xl"> */}
-          {/* <div className="flex justify-between px-5 py-3 bg-red-900 rounded-t-xl">
+        {/* <div className="flex justify-between px-5 py-3 bg-red-900 rounded-t-xl">
             <div className="text-md text-white">
               <span className="font-light text-sm">👥 Total Candidates:</span>{" "}
               {filteredUsers.length} candidates
@@ -344,125 +345,136 @@ export default function UsersPage() {
               />
             </div>
           </div> */}
-          <div className="overflow-x-auto border rounded-xl">
-            {loading ? (
-              <div className="flex w-full max-w-xs flex-col gap-7 my-5 mx-10">
-                <div className="flex flex-col gap-3">
-                  <Skeleton className="h-4 w-20" />
-                  <Skeleton className="h-8 w-full" />
-                </div>
-                <div className="flex flex-col gap-3">
-                  <Skeleton className="h-4 w-24" />
-                  <Skeleton className="h-8 w-full" />
-                </div>
-                <Skeleton className="h-8 w-24" />
-              </div>
-            ) : // <p className="text-muted-foreground">Loading users...</p>
-            filteredUsers.length === 0 ? (
-              <div className="flex justify-center items-center p-10 bg-black/5 min-h-80">
-                <p className="text-muted-foreground">No users found.</p>
-              </div>
-            ) : (
-              <table className="w-full text-sm">
-                {/* Table Header */}
-                <thead className="bg-muted">
-                  <tr>
-                    <th className="text-left px-4 py-3 font-medium">Name</th>
-                    <th className="text-left px-4 py-3 font-medium">Status</th>
-                    <th className="text-left px-4 py-3 font-medium">
-                      Position
-                    </th>
-                    <th className="text-left px-4 py-3 font-medium">Email</th>
-                    <th className="text-left px-4 py-3 font-medium">Phone</th>
-                    <th className="text-left px-4 py-3 font-medium">
-                      Birthdate
-                    </th>
-                    <th className="text-left px-4 py-3 font-medium">Gender</th>
-                    <th className="px-4 py-3 font-medium">Actions</th>
-                  </tr>
-                </thead>
-
-                {/* Table Body */}
-                <tbody>
-                  {filteredUsers.map((user, index) => (
-                    <tr
-                      key={user.id}
-                      className={
-                        index % 2 === 0 ? "bg-background" : "bg-muted/40"
-                      }
-                    >
-                      {/* Name with Avatar */}
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-full overflow-hidden bg-muted border shrink-0">
-                            {user.avatar_url ? (
-                              // eslint-disable-next-line @next/next/no-img-element
-                              <img
-                                src={user.avatar_url}
-                                alt={user.full_name}
-                                className="w-full h-full object-cover"
-                              />
-                            ) : (
-                              <div className="w-full h-full flex items-center justify-center">
-                                <span className="text-xs text-muted-foreground font-medium">
-                                  {user.full_name?.charAt(0).toUpperCase()}
-                                </span>
-                              </div>
-                            )}
-                          </div>
-                          <span className="font-medium">{user.full_name}</span>
-                        </div>
-                      </td>
-
-                      {/* Status Badge */}
-                      <td className="px-4 py-3">
-                        <span
-                          className={`px-2 py-1 rounded-full text-xs whitespace-nowrap font-medium ${
-                            user.status === "Available"
-                              ? "bg-green-100 text-green-700"
-                              : user.status === "Not Available"
-                                ? "bg-red-100 text-red-700"
-                                : "bg-black/15 text-muted-foreground"
-                          }`}
-                        >
-                          {user.status || "TBA"}
-                        </span>
-                      </td>
-
-                      {/* Position */}
-                      <td className="px-4 py-3 text-muted-foreground">
-                        {user.position || "TBA"}
-                      </td>
-
-                      <td className="px-4 py-3 text-muted-foreground">
-                        {user.email}
-                      </td>
-                      <td className="px-4 py-3 text-muted-foreground">
-                        {user.phone || "—"}
-                      </td>
-                      <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">
-                        {user.birthdate
-                          ? `${formatDate(user.birthdate)} (${calculateAge(user.birthdate)} yrs)`
-                          : "—"}
-                      </td>
-                      <td className="px-4 py-3 text-muted-foreground capitalize">
-                        {user.gender || "—"}
-                      </td>
-
-                      {/* Actions — 3 dots */}
-                      <td className="px-4 py-3">
-                        <ActionMenu
-                          onView={() => handleViewProfile(user)}
-                          onDelete={() => handleShowDelete(user)}
-                          onSetStatus={() => handleShowSetStatus(user)}
-                        />
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
+        <div className="mt-10 mb-5 flex justify-between">
+          <label className="flex items-center text-center gap-2 text-sm text-muted-foreground">
+            <Users size={16} />
+            Total Candidates:{" "}
+            <span className="text-black">{filteredUsers.length}</span>
+          </label>
+          <div className="md:w-64 w-40">
+            <Input
+              placeholder="Search by name..."
+              className="rounded-lg bg-white"
+              value={search}
+              onChange={(e) => handleSearch(e.target.value)}
+            />
           </div>
+        </div>
+        <div className="overflow-x-auto border rounded-xl">
+          {loading ? (
+            <div className="flex w-full max-w-xs flex-col gap-7 my-5 mx-10">
+              <div className="flex flex-col gap-3">
+                <Skeleton className="h-4 w-20" />
+                <Skeleton className="h-8 w-full" />
+              </div>
+              <div className="flex flex-col gap-3">
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-8 w-full" />
+              </div>
+              <Skeleton className="h-8 w-24" />
+            </div>
+          ) : // <p className="text-muted-foreground">Loading users...</p>
+          filteredUsers.length === 0 ? (
+            <div className="flex justify-center items-center p-10 bg-black/5 min-h-80">
+              <p className="text-muted-foreground">No users found.</p>
+            </div>
+          ) : (
+            <table className="w-full text-sm">
+              {/* Table Header */}
+              <thead className="bg-muted">
+                <tr>
+                  <th className="text-left px-4 py-3 font-medium">Name</th>
+                  <th className="text-left px-4 py-3 font-medium">Status</th>
+                  <th className="text-left px-4 py-3 font-medium">Position</th>
+                  <th className="text-left px-4 py-3 font-medium">Email</th>
+                  <th className="text-left px-4 py-3 font-medium">Phone</th>
+                  <th className="text-left px-4 py-3 font-medium">Birthdate</th>
+                  <th className="text-left px-4 py-3 font-medium">Gender</th>
+                  <th className="px-4 py-3 font-medium">Actions</th>
+                </tr>
+              </thead>
+
+              {/* Table Body */}
+              <tbody>
+                {filteredUsers.map((user, index) => (
+                  <tr
+                    key={user.id}
+                    className={
+                      index % 2 === 0 ? "bg-background" : "bg-muted/40"
+                    }
+                  >
+                    {/* Name with Avatar */}
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full overflow-hidden bg-muted border shrink-0">
+                          {user.avatar_url ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img
+                              src={user.avatar_url}
+                              alt={user.full_name}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center">
+                              <span className="text-xs text-muted-foreground font-medium">
+                                {user.full_name?.charAt(0).toUpperCase()}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                        <span className="font-medium">{user.full_name}</span>
+                      </div>
+                    </td>
+
+                    {/* Status Badge */}
+                    <td className="px-4 py-3">
+                      <span
+                        className={`px-2 py-1 rounded-full text-xs whitespace-nowrap font-medium ${
+                          user.status === "Available"
+                            ? "bg-green-100 text-green-700"
+                            : user.status === "Not Available"
+                              ? "bg-red-100 text-red-700"
+                              : "bg-black/15 text-muted-foreground"
+                        }`}
+                      >
+                        {user.status || "TBA"}
+                      </span>
+                    </td>
+
+                    {/* Position */}
+                    <td className="px-4 py-3 text-muted-foreground">
+                      {user.position || "TBA"}
+                    </td>
+
+                    <td className="px-4 py-3 text-muted-foreground">
+                      {user.email}
+                    </td>
+                    <td className="px-4 py-3 text-muted-foreground">
+                      {user.phone || "—"}
+                    </td>
+                    <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">
+                      {user.birthdate
+                        ? `${formatDate(user.birthdate)} (${calculateAge(user.birthdate)} yrs)`
+                        : "—"}
+                    </td>
+                    <td className="px-4 py-3 text-muted-foreground capitalize">
+                      {user.gender || "—"}
+                    </td>
+
+                    {/* Actions — 3 dots */}
+                    <td className="px-4 py-3">
+                      <ActionMenu
+                        onView={() => handleViewProfile(user)}
+                        onDelete={() => handleShowDelete(user)}
+                        onSetStatus={() => handleShowSetStatus(user)}
+                      />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
         {/* </div> */}
         {/* View Profile Modal */}
         {viewModal && selectedUser && (
@@ -538,9 +550,16 @@ export default function UsersPage() {
                     <div>
                       <p className="text-xs text-muted-foreground">Birthdate</p>
                       <p className="text-sm border rounded-sm p-1">
-                        {selectedUser.birthdate
-                          ? `${formatDate(selectedUser.birthdate)} (${calculateAge(selectedUser.birthdate)} yrs)`
-                          : "—"}
+                        {selectedUser.birthdate ? (
+                          <>
+                            {formatDate(selectedUser.birthdate)}{" "}
+                            <span className="text-muted-foreground text-xs">
+                              ({calculateAge(selectedUser.birthdate)} yrs)
+                            </span>
+                          </>
+                        ) : (
+                          "—"
+                        )}
                       </p>
                     </div>
 

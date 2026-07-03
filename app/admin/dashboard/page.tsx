@@ -164,7 +164,7 @@ export default function AdminDashboard() {
       return "text-red-600";
     }
     if (user.status === "Available") return "text-green-400";
-    if (user.status === "Not Available") return "text-red-400";
+    if (user.status === "Not Available") return "text-black/30";
     return "text-muted-foreground";
   }
 
@@ -176,10 +176,10 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="flex">
+    <div className="flex bg-neutral-50">
       <SidebarNav role="admin" />
 
-      <main className="flex-1 p-8 bg-neutral-50">
+      <main className="flex-1 p-5 md:p-10 mt-10 md:mt-0">
         <h1 className="text-2xl font-bold">Admin Dashboard</h1>
         <p className="mb-10 text-sm text-muted-foreground">
           Overview of platform activity
@@ -199,7 +199,10 @@ export default function AdminDashboard() {
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
               {statCards.map((stat) => (
-                <Card key={stat.title} className={`p-5 border-0 ring-0 ${stat.color}`}>
+                <Card
+                  key={stat.title}
+                  className={`p-5 border-0 ring-0 ${stat.color}`}
+                >
                   <CardHeader className="pb-2">
                     <CardTitle className="text-sm font-medium text-muted-foreground flex items-center justify-between gap-2">
                       <span>{stat.title}</span>
@@ -229,7 +232,7 @@ export default function AdminDashboard() {
                     <div className="bg-neutral-100 p-2 rounded-md">
                       <Users size={18} />
                     </div>
-                    Recent Users
+                    Recent Accounts
                   </CardTitle>
                   <Link href="/admin/users">
                     <span className="text-sm text-red-500 hover:underline cursor-pointer">
@@ -249,7 +252,9 @@ export default function AdminDashboard() {
                           <th className="text-left py-4 font-medium pl-15">
                             USER
                           </th>
-                          <th className="text-left py-4 font-medium">POSITION</th>
+                          <th className="text-left py-4 font-medium">
+                            POSITION
+                          </th>
                           <th className="text-left py-4 font-medium">ROLE</th>
                           <th className="text-left py-4 font-medium">STATUS</th>
                           <th className="text-left py-4 font-medium">ACTION</th>

@@ -15,6 +15,7 @@ import {
   User,
   MapPin,
 } from "lucide-react";
+import { Spinner } from "@/components/ui/spinner";
 import { Separator } from "@/components/ui/separator";
 
 interface Profile {
@@ -57,6 +58,13 @@ const INITIAL_FORM: FormState = {
   weight: "",
   position: "",
 };
+
+const POSITIONS = [
+  "Barber",
+  "Vehicle Spray Painter",
+  "Landscape Gardener",
+  "Mechanical Fitter",
+];
 
 export default function ClientDashboard() {
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -174,13 +182,6 @@ export default function ClientDashboard() {
       avatar_url: avatarUrl,
     };
 
-    const POSITIONS = [
-      "Barber",
-      "Vehicle Spray Painter",
-      "Landscape Gardener",
-      "Mechanical Fitter",
-    ];
-
     const { error: updateError } = await supabase
       .from("profiles")
       .update(updates)
@@ -223,10 +224,10 @@ export default function ClientDashboard() {
   }
 
   return (
-    <div className="flex">
+    <div className="flex bg-neutral-50">
       <SidebarNav role="client" />
 
-      <main className="flex-1 p-5 md:p-10 bg-neutral-50">
+      <main className="flex-1 p-5 md:p-10 mt-10 md:mt-0">
         <h1 className="text-2xl font-semibold">Set up your Profile</h1>
         <p className="mb-10 text-sm text-muted-foreground">
           Keep your profile information up to date
@@ -277,7 +278,6 @@ export default function ClientDashboard() {
                     </span>
                   </p>
                 </div>
-                
               </CardContent>
             </Card>
             <div className="bg-white border-neutral-300 rounded-2xl flex flex-col gap-5 border px-5 py-5">
@@ -324,7 +324,7 @@ export default function ClientDashboard() {
                     {/* <Save />{saving ? "Saving..." : "Save Changes"} */}
                     {saving ? (
                       <>
-                        <Loader /> Saving...
+                        <Spinner /> Saving Changes...
                       </>
                     ) : (
                       <>
@@ -394,7 +394,9 @@ export default function ClientDashboard() {
                       }
                       className="h-8 w-full rounded-lg border border-input bg-transparent px-2.5 text-sm"
                     >
-                      <option value="">Select gender</option>
+                      <option disabled selected value="">
+                        Select gender
+                      </option>
                       <option value="male">Male</option>
                       <option value="female">Female</option>
                       <option value="other">Other</option>
@@ -480,18 +482,14 @@ export default function ClientDashboard() {
                       }
                       className="h-8 w-full rounded-lg border border-input bg-transparent px-2.5 text-sm"
                     >
-                      
-                      <option value="">Select Position</option>
-                      <option value="Barber">Barber</option>
-                      <option value="Vehicle Spray Painter">
-                        Vehicle Spray Painter
+                      <option disabled selected value="">
+                        Select Position
                       </option>
-                      <option value="Landscape Gardener">
-                        Landscape Gardener
-                      </option>
-                      <option value="Mechanical Fitter">
-                        Mechanical Fitter
-                      </option>
+                      {POSITIONS.map((type) => (
+                        <option key={type} value={type}>
+                          {type}
+                        </option>
+                      ))}
                     </select>
                   ) : (
                     <p className="text-sm capitalize">

@@ -267,19 +267,19 @@ export default function UploadPage() {
   }
 
   return (
-    <div className="flex">
+    <div className="flex bg-neutral-50">
       <SidebarNav role="client" />
 
-      <main className="flex-1 p-8 bg-neutral-50">
-        <div className="flex justify-between mb-8">
+      <main className="flex-1 p-5 md:p-10 mt-10 md:mt-0">
+        <div className="flex justify-between mb-10">
           <div>
-            <h1 className="text-2xl font-bold">My Files & Links</h1>
+            <h1 className="text-2xl font-semibold">My Files & Links</h1>
             <p className="text-muted-foreground text-sm">
               Manage your documents and video links
             </p>
           </div>
-          <div>
-            <p className="text-sm flex items-center gap-2 text-muted-foreground bg-neutral-100 border py-1 px-2 rounded-lg ">
+          <div className="hidden md:block">
+            <p className="text-xs md:text-sm flex items-center gap-2 text-muted-foreground bg-neutral-100 border py-1 px-2 rounded-lg ">
               <CircleAlert size={15} />
               Files and links are visible to employers
             </p>
@@ -463,8 +463,7 @@ export default function UploadPage() {
                     onChange={(e) => setLinkUrl(e.target.value)}
                   />
                   <span className="text-sm text-muted-foreground">
-                    Youtube, Vimeo, Google Drive, or any direct
-                    URL
+                    Youtube, Vimeo, Google Drive, or any direct URL
                   </span>
                 </div>
 

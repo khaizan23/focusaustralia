@@ -7,7 +7,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/lib/supabase";
 import SidebarNav from "@/components/ui/sidebar-nav";
-import { TrashIcon, Save } from "lucide-react";
+import { TrashIcon, Save, CalendarDays, MapPin, Briefcase } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Spinner } from "@/components/ui/spinner";
 
 interface Experience {
   id: string;
@@ -87,6 +89,7 @@ export default function BackgroundPage() {
   const [deleteModal, setDeleteModal] = useState(false);
   const [expToDelete, setExpToDelete] = useState<Experience | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [activeTab, setActiveTab] = useState<"all" | "current" | "past">("all")
 
   useEffect(() => {
     async function fetchExperiences() {
@@ -218,6 +221,14 @@ export default function BackgroundPage() {
     setExpToDelete(null);
   }, []);
 
+  const filteredExperiences = experiences.filter((exp) => {
+    if (activeTab === "current") return exp.is_current
+    if (activeTab === "past") return !exp.is_current
+    return true
+  })
+
+  const currentCount = experiences.filter((exp) => exp.is_current).length
+
   // async function handleDelete(id: string) {
   //   const { error } = await supabase.from("experiences").delete().eq("id", id);
 
@@ -227,46 +238,133 @@ export default function BackgroundPage() {
   // }
 
   return (
-    <div className="flex">
+    <div className="flex bg-neutral-50">
       <SidebarNav role="client" />
 
-      <main className="flex-1 p-8 bg-neutral-50">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-xl font-semibold">Work Experience</h1>
+      <main className="flex-1 p-5 md:p-10 mt-10 md:mt-0 ">
+        <div className="flex justify-between items-center mb-10">
+          <div>
+            <h1 className="text-2xl font-semibold">Work Experience</h1>
+            <p className="text-muted-foreground text-sm">
+              Your professional history visible to employers
+            </p>
+          </div>
           <Button onClick={handleOpenModal}>+ Add Experience</Button>
+        </div>
+
+        {/* Summary Bar */}
+        <div className="flex items-center gap-3 mb-6 text-sm text-muted-foreground">
+          <div className="flex items-center gap-2">
+            <Briefcase size={16} />
+            Total Experience:{" "}
+            <span className="font-semibold text-foreground">
+              {experiences.length}
+            </span>{" "}
+            position{experiences.length !== 1 ? "'s" : ""}
+          </div>
+          <span>|</span>
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-red-900" />
+            {currentCount} current position{currentCount !== 1 ? "'s" : ""}
+          </div>
+        </div>
+
+        {/* Tabs */}
+        <div className="flex gap-6 mb-6 border-b">
+          {(["all", "current", "past"] as const).map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={`pb-2 text-sm capitalize transition-colors border-b-2 ${
+                activeTab === tab
+                  ? "border-red-900 text-red-900 font-medium"
+                  : "border-transparent text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {tab}
+            </button>
+          ))}
         </div>
 
         {/* Experience List */}
         {loading ? (
-          <p className="text-muted-foreground">Loading...</p>
-        ) : experiences.length === 0 ? (
-          <p className="text-muted-foreground">No experience added yet.</p>
+          // <p className="text-muted-foreground">Loading...</p>
+          <>
+            <p className="text-muted-foreground mb-2 flex items-center gap-3">
+              <Spinner />
+              Loading...
+            </p>
+            <div className="flex w-full gap-4 rounded-md border border-neutral-200/50 p-4">
+              <Skeleton className="h-24 w-24 shrink-0" />
+              <div className="flex flex-1 flex-col gap-2">
+                <Skeleton className="h-5 w-3/4" />
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-5/6" />
+                <div className="mt-auto flex items-center gap-2">
+                  <Skeleton className="h-6 w-16" />
+                  <Skeleton className="h-6 w-20" />
+                </div>
+              </div>
+            </div>
+          </>
+        ) : filteredExperiences.length === 0 ? (
+          <p className="text-muted-foreground">
+            No {activeTab !== "all" ? activeTab : ""} experience added yet.
+          </p>
         ) : (
           <div className="flex flex-col gap-4 items-center">
-            {experiences.map((exp) => (
-              <Card key={exp.id} className="w-[80%] shadow-sm">
+            {filteredExperiences.map((exp) => (
+              <Card key={exp.id} className="lg:w-[80%] shadow-sm w-full">
                 <CardContent className="pt-4">
-                  <div className="flex justify-between items-start">
-                    <div className="flex flex-col gap-1">
-                      <h2 className="font-semibold text-base">
-                        {exp.job_title}
-                      </h2>
-                      <p className="text-sm text-muted-foreground">
-                        {exp.company_name}
-                        {exp.employment_type ? ` · ${exp.employment_type}` : ""}
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        {exp.start_month} {exp.start_year} —{" "}
-                        {exp.is_current
-                          ? "Present"
-                          : `${exp.end_month} ${exp.end_year}`}
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        {exp.location ? `${exp.location}` : ""}
-                      </p>
-                      {exp.job_description && (
-                        <p className="text-sm mt-2">{exp.job_description}</p>
-                      )}
+                  <div className="flex justify-between items-start px-3">
+                    <div className="flex flex-row gap-2.5">
+                      {/* Status Dot */}
+                      <div className="flex gap-3">
+                        <span
+                          className={`w-2.5 h-2.5 rounded-full mt-1.5 shrink-0 ${
+                            exp.is_current
+                              ? "bg-red-900"
+                              : "bg-muted-foreground/40"
+                          }`}
+                        />
+                      </div>
+
+                      <div className="px-2.5 flex flex-col gap-3">
+                        <div className="flex items-center gap-2">
+                          <h2 className="font-semibold text-base">
+                            {exp.job_title}
+                          </h2>
+                          {exp.is_current && (
+                            <span className="text-xs bg-red-800 text-white px-2 py-0.5 rounded-full">
+                              Current
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-sm text-muted-foreground">
+                          {exp.company_name}
+                          {exp.employment_type
+                            ? ` · ${exp.employment_type}`
+                            : ""}
+                        </p>
+                        <div className="flex gap-3">
+                          <p className="text-sm text-muted-foreground flex items-center gap-">
+                            <CalendarDays size={14} />
+                            {exp.start_month} {exp.start_year} —{" "}
+                            {exp.is_current
+                              ? "Present"
+                              : `${exp.end_month} ${exp.end_year}`}
+                          </p>
+                          <p className="text-sm text-muted-foreground gap-1 flex items-center">
+                            <MapPin size={14} />
+                            {exp.location ? `${exp.location}` : ""}
+                          </p>
+                        </div>
+                        {exp.job_description && (
+                          <p className="text-sm mt-2 text-muted-foreground">
+                            {exp.job_description}
+                          </p>
+                        )}
+                      </div>
                     </div>
 
                     <Button

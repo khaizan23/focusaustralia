@@ -195,10 +195,10 @@ export default function PendingVerificationsPage() {
   const actionDetails = getActionDetails();
 
   return (
-    <div className="flex">
+    <div className="flex bg-neutral-50">
       <SidebarNav role="admin" />
 
-      <main className="flex-1 p-8 bg-neutral-50">
+      <main className="flex-1 p-5 md:p-10 mt-10 md:mt-0">
         <h1 className="text-2xl font-bold mb-6">Employer Verifications</h1>
 
         {/* Tabs */}
