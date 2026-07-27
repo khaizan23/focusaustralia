@@ -115,19 +115,24 @@ export default function AdminSettingsPage() {
   }, [form]);
 
   return (
-    <div className="flex bg-neutral-50">
+    <div className="flex bg-neutral-50 min-h-screen">
       <SidebarNav role="admin" />
 
       <main className="flex-1 p-5 md:p-10 mt-10 md:mt-0">
-        <h1 className="text-2xl font-bold mb-6">Settings</h1>
+        {/* <h1 className="text-2xl font-bold mb-6">Settings</h1> */}
+        <div className="items-center mb-10">
+          <h1 className="text-2xl font-semibold">Settings</h1>
+          <p className="text-muted-foreground text-sm">
+            Manage admin accounts and platform configuration
+          </p>
+        </div>
 
         <div className="max-w-lg">
           <Card className="py-4">
             <CardHeader>
               <CardTitle>Create Admin Account</CardTitle>
               <CardDescription>
-                Create a new administrator account. Only admins can create other
-                admin accounts.
+                Only admins can create new administrator accounts.
               </CardDescription>
             </CardHeader>
 

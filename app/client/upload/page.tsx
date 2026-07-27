@@ -267,7 +267,7 @@ export default function UploadPage() {
   }
 
   return (
-    <div className="flex bg-neutral-50">
+    <div className="flex bg-neutral-50 min-h-screen">
       <SidebarNav role="client" />
 
       <main className="flex-1 p-5 md:p-10 mt-10 md:mt-0">

@@ -43,6 +43,8 @@ export default async function proxy(request: NextRequest) {
         } else if (profile?.role === "employer") {
           if (profile?.verification_status === "verified") {
             return NextResponse.redirect(new URL("/employer/dashboard", request.url))
+          } else if (profile?.verification_status === "deactivated") {
+            return NextResponse.redirect(new URL("/employer/deactivated", request.url))
           } else if (profile?.verification_status === "rejected") {
             return NextResponse.next()
           } else {
@@ -124,6 +126,11 @@ export default async function proxy(request: NextRequest) {
       if (profile?.role !== "employer") {
         return NextResponse.redirect(new URL("/login", request.url))
       }
+
+      // Kung employer pero deactivated
+  if (profile?.verification_status === "deactivated" && path !== "/employer/deactivated") {
+    return NextResponse.redirect(new URL("/employer/deactivated", request.url))
+  }
 
       // Kung employer pero hindi pa verified
       if (profile?.verification_status === "pending" && path !== "/employer/pending") {

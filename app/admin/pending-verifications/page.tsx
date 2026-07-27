@@ -2,9 +2,17 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { supabase } from "@/lib/supabase";
 import SidebarNav from "@/components/ui/sidebar-nav";
+import {
+  Building2,
+  Clock,
+  CheckCircle,
+  XCircle,
+  CalendarDays,
+  Mail,
+} from "lucide-react";
 
 interface Employer {
   id: string;
@@ -14,6 +22,7 @@ interface Employer {
   company_address: string | null;
   industry: string | null;
   verification_status: string | null;
+  avatar_url: string | null;
   created_at: string;
 }
 
@@ -25,7 +34,9 @@ interface ActionModal {
 
 export default function PendingVerificationsPage() {
   const [employers, setEmployers] = useState<Employer[]>([]);
+  const [filteredEmployers, setFilteredEmployers] = useState<Employer[]>([]);
   const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
   const [actionModal, setActionModal] = useState<ActionModal>({
     show: false,
     type: null,
@@ -33,8 +44,8 @@ export default function PendingVerificationsPage() {
   });
   const [processing, setProcessing] = useState(false);
   const [activeTab, setActiveTab] = useState<
-    "pending" | "verified" | "rejected"
-  >("pending");
+    "verified" | "pending" | "rejected"
+  >("verified");
 
   useEffect(() => {
     async function fetchEmployers() {
@@ -44,16 +55,49 @@ export default function PendingVerificationsPage() {
         .eq("role", "employer")
         .order("created_at", { ascending: false });
 
-      if (!error && data) setEmployers(data);
+      if (!error && data) {
+        setEmployers(data);
+        setFilteredEmployers(data);
+      }
       setLoading(false);
     }
 
     fetchEmployers();
   }, []);
 
-  const filteredEmployers = employers.filter(
+  // Search handler
+  const handleSearch = useCallback(
+    (value: string) => {
+      setSearch(value);
+      if (!value.trim()) {
+        setFilteredEmployers(employers);
+        return;
+      }
+      const filtered = employers.filter(
+        (e) =>
+          e.full_name?.toLowerCase().includes(value.toLowerCase()) ||
+          e.company_name?.toLowerCase().includes(value.toLowerCase()),
+      );
+      setFilteredEmployers(filtered);
+    },
+    [employers],
+  );
+
+  const tabEmployers = filteredEmployers.filter(
     (e) => e.verification_status === activeTab,
   );
+
+  // Stats
+  const totalCount = employers.length;
+  const pendingCount = employers.filter(
+    (e) => e.verification_status === "pending",
+  ).length;
+  const verifiedCount = employers.filter(
+    (e) => e.verification_status === "verified",
+  ).length;
+  const rejectedCount = employers.filter(
+    (e) => e.verification_status === "rejected",
+  ).length;
 
   const handleShowAction = useCallback(
     (type: "verify" | "reject" | "delete", employer: Employer) => {
@@ -83,7 +127,6 @@ export default function PendingVerificationsPage() {
         .update({ verification_status: "verified" })
         .eq("id", actionModal.employer.id);
 
-      // Log action
       await supabase.from("audit_logs").insert({
         action: "VERIFY_EMPLOYER",
         target_id: actionModal.employer.id,
@@ -99,6 +142,13 @@ export default function PendingVerificationsPage() {
             : e,
         ),
       );
+      setFilteredEmployers((prev) =>
+        prev.map((e) =>
+          e.id === actionModal.employer!.id
+            ? { ...e, verification_status: "verified" }
+            : e,
+        ),
+      );
     }
 
     if (actionModal.type === "reject") {
@@ -107,7 +157,6 @@ export default function PendingVerificationsPage() {
         .update({ verification_status: "rejected" })
         .eq("id", actionModal.employer.id);
 
-      // Log action
       await supabase.from("audit_logs").insert({
         action: "REJECT_EMPLOYER",
         target_id: actionModal.employer.id,
@@ -123,10 +172,16 @@ export default function PendingVerificationsPage() {
             : e,
         ),
       );
+      setFilteredEmployers((prev) =>
+        prev.map((e) =>
+          e.id === actionModal.employer!.id
+            ? { ...e, verification_status: "rejected" }
+            : e,
+        ),
+      );
     }
 
     if (actionModal.type === "delete") {
-      // Delete from auth
       await fetch("/api/delete-user", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -138,7 +193,6 @@ export default function PendingVerificationsPage() {
         .delete()
         .eq("id", actionModal.employer.id);
 
-      // Log action
       await supabase.from("audit_logs").insert({
         action: "DELETE_EMPLOYER",
         target_id: actionModal.employer.id,
@@ -148,6 +202,9 @@ export default function PendingVerificationsPage() {
       });
 
       setEmployers((prev) =>
+        prev.filter((e) => e.id !== actionModal.employer!.id),
+      );
+      setFilteredEmployers((prev) =>
         prev.filter((e) => e.id !== actionModal.employer!.id),
       );
     }
@@ -192,142 +249,224 @@ export default function PendingVerificationsPage() {
     }
   }
 
+  function getStatusBadge(status: string | null) {
+    switch (status) {
+      case "verified":
+        return (
+          <span className="flex items-center gap-1 text-green-600 text-sm font-medium">
+            <CheckCircle size={16} /> Verified
+          </span>
+        );
+      case "rejected":
+        return (
+          <span className="flex items-center gap-1 text-red-600 text-sm font-medium">
+            <XCircle size={16} /> Rejected
+          </span>
+        );
+      default:
+        return (
+          <span className="flex items-center gap-1 text-orange-500 text-sm font-medium">
+            <Clock size={16} /> Pending
+          </span>
+        );
+    }
+  }
+
   const actionDetails = getActionDetails();
 
   return (
-    <div className="flex bg-neutral-50">
+    <div className="flex bg-neutral-50 min-h-screen">
       <SidebarNav role="admin" />
 
-      <main className="flex-1 p-5 md:p-10 mt-10 md:mt-0">
-        <h1 className="text-2xl font-bold mb-6">Employer Verifications</h1>
+      <main className="flex-1 p-3 md:p-10 mt-10 md:mt-0">
+        {/* Header */}
+        <div className="flex justify-between items-start mb-8">
+          <div>
+            <h1 className="md:text-2xl font-bold">Employer Verifications</h1>
+            <p className="text-sm text-muted-foreground">
+              Review and manage employer verification requests
+            </p>
+          </div>
+          <div className="w-auto">
+            <Input
+              placeholder="Search employers..."
+              value={search}
+              onChange={(e) => handleSearch(e.target.value)}
+            />
+          </div>
+        </div>
+
+        {/* Stats Bar */}
+        <div className="grid grid-cols-2 md:flex gap-3 mb-6 flex-wrap">
+          <div className="flex items-center gap-2 px-4 py-2 bg-white border rounded-lg text-sm">
+            <Building2 size={16} className="text-muted-foreground" />
+            <span className="font-semibold">{totalCount}</span>
+            <span className="text-muted-foreground">Total</span>
+          </div>
+          <div className="flex items-center gap-2 px-4 py-2 bg-white border rounded-lg text-sm">
+            <CheckCircle size={16} className="text-green-500" />
+            <span className="font-semibold text-green-500">
+              {verifiedCount}
+            </span>
+            <span className="text-muted-foreground">Verified</span>
+          </div>
+          <div className="flex items-center gap-2 px-4 py-2 bg-white border rounded-lg text-sm">
+            <Clock size={16} className="text-orange-500" />
+            <span className="font-semibold text-orange-500">
+              {pendingCount}
+            </span>
+            <span className="text-muted-foreground">Pending</span>
+          </div>
+          <div className="flex items-center gap-2 px-4 py-2 bg-white border rounded-lg text-sm">
+            <XCircle size={16} className="text-red-500" />
+            <span className="font-semibold text-red-500">{rejectedCount}</span>
+            <span className="text-muted-foreground">Rejected</span>
+          </div>
+        </div>
 
         {/* Tabs */}
-        <div className="flex gap-2 mb-6">
-          {(["pending", "verified", "rejected"] as const).map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`px-4 py-2 border rounded-lg text-sm font-medium transition-colors capitalize ${
-                activeTab === tab
-                  ? "bg-red-900 text-primary-foreground"
-                  : "bg-muted text-muted-foreground hover:bg-black/10"
-              }`}
-            >
-              {tab} (
-              {employers.filter((e) => e.verification_status === tab).length})
-            </button>
-          ))}
+        <div className="flex gap-6 mb-6 border-b">
+          {(["verified", "pending", "rejected"] as const).map((tab) => {
+            const count = employers.filter(
+              (e) => e.verification_status === tab,
+            ).length;
+            return (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={`pb-2 text-sm capitalize transition-colors border-b-2 ${
+                  activeTab === tab
+                    ? "border-red-700 text-red-700 font-medium"
+                    : "border-transparent text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {tab} <span className="px-1">{count}</span>
+              </button>
+            );
+          })}
         </div>
 
         {/* Employer List */}
         {loading ? (
           <p className="text-muted-foreground">Loading...</p>
-        ) : filteredEmployers.length === 0 ? (
+        ) : tabEmployers.length === 0 ? (
           <div className="flex justify-center items-center min-h-40 bg-white rounded-xl">
             <p className="text-muted-foreground">No {activeTab} employers.</p>
           </div>
         ) : (
           <div className="flex flex-col gap-4">
-            {filteredEmployers.map((employer) => (
-              <Card key={employer.id}>
-                <CardContent className="pt-4">
-                  <div className="flex justify-between items-start gap-4">
-                    {/* Employer Details */}
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4 flex-1">
-                      <div>
-                        <p className="text-xs text-muted-foreground">
-                          Contact Person
-                        </p>
-                        <p className="text-sm font-medium">
-                          {employer.full_name}
-                        </p>
-                      </div>
-
-                      <div>
-                        <p className="text-xs text-muted-foreground">Email</p>
-                        <p className="text-sm">{employer.email}</p>
-                      </div>
-
-                      <div>
-                        <p className="text-xs text-muted-foreground">
-                          Company Name
-                        </p>
-                        <p className="text-sm">
-                          {employer.company_name || "—"}
-                        </p>
-                      </div>
-
-                      <div>
-                        <p className="text-xs text-muted-foreground">
-                          Company Address
-                        </p>
-                        <p className="text-sm">
-                          {employer.company_address || "—"}
-                        </p>
-                      </div>
-
-                      <div>
-                        <p className="text-xs text-muted-foreground">
-                          Industry
-                        </p>
-                        <p className="text-sm">{employer.industry || "—"}</p>
-                      </div>
-
-                      <div>
-                        <p className="text-xs text-muted-foreground">Applied</p>
-                        <p className="text-sm">
-                          {formatDate(employer.created_at)}
-                        </p>
-                      </div>
+            {tabEmployers.map((employer) => (
+              <div key={employer.id} className="bg-white rounded-xl border p-6">
+                {/* Top Row — Avatar + Name + Status */}
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-full overflow-hidden bg-muted border shrink-0">
+                      {employer.avatar_url ? (
+                        <img
+                          src={employer.avatar_url}
+                          alt={employer.full_name}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <span className="text-sm text-muted-foreground font-medium">
+                            {employer.full_name?.charAt(0).toUpperCase()}
+                          </span>
+                        </div>
+                      )}
                     </div>
+                    <div>
+                      <p className="font-semibold">{employer.full_name}</p>
+                      <p className="text-sm text-muted-foreground flex items-center gap-1">
+                        <Mail size={12} />
+                        {employer.email}
+                      </p>
+                    </div>
+                  </div>
+                  {getStatusBadge(employer.verification_status)}
+                </div>
 
-                    {/* Action Buttons */}
-                    <div className="flex flex-col gap-2 shrink-0">
-                      {activeTab === "pending" && (
-                        <>
-                          <Button
-                            className="bg-green-500 hover:bg-green-600 text-white"
-                            onClick={() => handleShowAction("verify", employer)}
-                          >
-                            Verify
-                          </Button>
-                          <Button
-                            variant="outline"
-                            onClick={() => handleShowAction("reject", employer)}
-                          >
-                            Reject
-                          </Button>
-                        </>
-                      )}
+                {/* Company Details */}
+                <div className="grid grid-cols-3 gap-4 mb-4">
+                  <div>
+                    <p className="text-xs text-muted-foreground uppercase mb-1">
+                      Company
+                    </p>
+                    <p className="text-sm font-medium">
+                      {employer.company_name || "—"}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground uppercase mb-1">
+                      Address
+                    </p>
+                    <p className="text-sm font-medium">
+                      {employer.company_address || "—"}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground uppercase mb-1">
+                      Industry
+                    </p>
+                    <p className="text-sm font-medium">
+                      {employer.industry || "—"}
+                    </p>
+                  </div>
+                </div>
 
-                      {activeTab === "verified" && (
-                        <Button
-                          variant="outline"
-                          onClick={() => handleShowAction("reject", employer)}
-                        >
-                          Revoke
-                        </Button>
-                      )}
+                {/* Bottom Row — Date + Actions */}
+                <div className="flex justify-between items-center pt-3 border-t">
+                  <p className="text-xs text-muted-foreground flex items-center gap-1">
+                    <CalendarDays size={13} />
+                    Applied: {formatDate(employer.created_at)}
+                  </p>
 
-                      {activeTab === "rejected" && (
+                  <div className="flex gap-2">
+                    {activeTab === "pending" && (
+                      <>
                         <Button
                           className="bg-green-500 hover:bg-green-600 text-white"
                           onClick={() => handleShowAction("verify", employer)}
                         >
-                          Re-verify
+                          Verify
                         </Button>
-                      )}
+                        <Button
+                          variant="outline"
+                          onClick={() => handleShowAction("reject", employer)}
+                        >
+                          Reject
+                        </Button>
+                      </>
+                    )}
 
+                    {activeTab === "verified" && (
                       <Button
-                        className="bg-red-700 hover:bg-red-800 text-white"
-                        onClick={() => handleShowAction("delete", employer)}
+                        variant="outline"
+                        onClick={() => handleShowAction("reject", employer)}
                       >
-                        Delete
+                        Revoke
                       </Button>
-                    </div>
+                    )}
+
+                    {activeTab === "rejected" && (
+                      <Button
+                        className="bg-green-500 hover:bg-green-600 text-white"
+                        onClick={() => handleShowAction("verify", employer)}
+                      >
+                        Re-verify
+                      </Button>
+                    )}
+
+                    <Button
+                      variant="outline"
+                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                      onClick={() => handleShowAction("delete", employer)}
+                    >
+                      Delete
+                    </Button>
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             ))}
           </div>
         )}
@@ -337,11 +476,9 @@ export default function PendingVerificationsPage() {
           <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
             <div className="bg-card rounded-xl w-full max-w-sm p-6 flex flex-col gap-4">
               <h2 className="text-lg font-semibold">{actionDetails.title}</h2>
-
               <p className="text-sm text-muted-foreground">
                 {actionDetails.message}
               </p>
-
               <div className="flex gap-2">
                 <Button
                   variant="outline"

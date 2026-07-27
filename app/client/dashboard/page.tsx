@@ -214,7 +214,7 @@ export default function ClientDashboard() {
 
   if (loading) {
     return (
-      <div className="flex">
+      <div className="flex min-h-screen">
         <SidebarNav role="client" />
         <main className="flex-1 p-8">
           <p className="text-muted-foreground">Loading...</p>
@@ -224,7 +224,7 @@ export default function ClientDashboard() {
   }
 
   return (
-    <div className="flex bg-neutral-50">
+    <div className="flex bg-neutral-50 min-h-screen">
       <SidebarNav role="client" />
 
       <main className="flex-1 p-5 md:p-10 mt-10 md:mt-0">
@@ -232,9 +232,9 @@ export default function ClientDashboard() {
         <p className="mb-10 text-sm text-muted-foreground">
           Keep your profile information up to date
         </p>
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 md:gap-10">
           {/* Profile Photo Card */}
-          <div className="flex flex-col gap-5">
+          <div className="flex flex-col gap-3 md:gap-5">
             <Card className="lg:col-span-1 relative rounded-2xl">
               <div className="bg-neutral-200 h-30 absolute w-full"></div>
               <CardContent className="flex flex-col items-center gap-4 mb-5">
@@ -273,9 +273,20 @@ export default function ClientDashboard() {
                   </p>
                   <p className="text-sm text-muted-foreground capitalize">
                     {profile?.role}:{" "}
-                    <span className="text-xs border px-2 py-0.5 rounded-2xl font-medium text-green-600 bg-green-100">
+                    <span
+                      className={`text-xs border px-2 py-0.5 rounded-2xl font-medium ${
+                        profile?.status === "Available"
+                          ? "text-green-600 bg-green-100 border-green-200"
+                          : profile?.status === "Not Available"
+                            ? "text-red-600 bg-red-100 border-red-200"
+                            : "text-gray-600 bg-gray-100 border-gray-200"
+                      }`}
+                    >
                       {profile?.status}
                     </span>
+                    {/* <span className="text-xs border px-2 py-0.5 rounded-2xl font-medium text-green-600 bg-green-100">
+                      {profile?.status}
+                    </span> */}
                   </p>
                 </div>
               </CardContent>
@@ -302,9 +313,9 @@ export default function ClientDashboard() {
           </div>
 
           {/* Profile Details Card */}
-          <Card className="lg:col-span-2 p-5 rounded-2xl">
+          <Card className="lg:col-span-2 p-3 md:p-5 rounded-2xl">
             <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle className="flex items-center gap-2">
+              <CardTitle className="flex items-center gap-1 md:gap-2">
                 <div className="bg-neutral-100 p-1 rounded-md">
                   <User className="text-muted-foreground" />
                 </div>
@@ -343,7 +354,7 @@ export default function ClientDashboard() {
               )}
               {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-8">
                 {/* Full Name */}
                 <div className="flex flex-col gap-2">
                   <Label className="text-muted-foreground">FULL NAME</Label>
@@ -372,6 +383,8 @@ export default function ClientDashboard() {
                   <Label className="text-muted-foreground">PHONE NUMBER</Label>
                   {editing ? (
                     <Input
+                      type="tel"
+                      inputMode="numeric"
                       placeholder="Enter phone number"
                       value={form.phone}
                       onChange={(e) =>

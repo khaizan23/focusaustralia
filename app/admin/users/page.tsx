@@ -321,7 +321,7 @@ export default function UsersPage() {
   }
 
   return (
-    <div className="flex bg-neutral-50">
+    <div className="flex bg-neutral-50 min-h-screen">
       <SidebarNav role="admin" />
 
       <main className="flex-1 p-5 md:p-10 mt-10 md:mt-0 overflow-hidden">

@@ -176,7 +176,7 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="flex bg-neutral-50">
+    <div className="flex bg-neutral-50 min-h-screen">
       <SidebarNav role="admin" />
 
       <main className="flex-1 p-5 md:p-10 mt-10 md:mt-0">
@@ -186,7 +186,7 @@ export default function AdminDashboard() {
         </p>
         {/* Stats Cards */}
         {loading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             {[...Array(4)].map((_, i) => (
               <Card key={i}>
                 <CardContent className="pt-6">
@@ -197,7 +197,7 @@ export default function AdminDashboard() {
           </div>
         ) : (
           <>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-5 mb-8">
               {statCards.map((stat) => (
                 <Card
                   key={stat.title}
@@ -212,7 +212,9 @@ export default function AdminDashboard() {
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <p className={`text-5xl font-bold mb-3 ${stat.valueColor}`}>
+                    <p
+                      className={`text-4xl md:text-5xl font-bold mb-3 ${stat.valueColor}`}
+                    >
                       {stat.value}
                     </p>
                     <p className="text-xs text-muted-foreground mt-1">
@@ -227,7 +229,7 @@ export default function AdminDashboard() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
               {/* Recent Users — 2/3 width */}
               <Card className="lg:col-span-2">
-                <CardHeader className="flex flex-row items-center justify-between px-10 py-5">
+                <CardHeader className="flex flex-row items-center justify-between md:px-10 py-3">
                   <CardTitle className="text-base flex items-center gap-2">
                     <div className="bg-neutral-100 p-2 rounded-md">
                       <Users size={18} />
@@ -240,16 +242,17 @@ export default function AdminDashboard() {
                     </span>
                   </Link>
                 </CardHeader>
+                <Separator />
                 <CardContent className="p-0 overflow-x-auto">
                   {recentUsers.length === 0 ? (
-                    <p className="text-sm text-muted-foreground flex justify-center min-h-20">
+                    <p className="text-sm text-muted-foreground flex justify-center min-h-50 items-center">
                       No users yet.
                     </p>
                   ) : (
                     <table className="w-full text-sm border-collapse">
-                      <thead className="bg-neutral-200">
+                      <thead className="bg-neutral-00">
                         <tr className="text-xs text-muted-foreground border-b">
-                          <th className="text-left py-4 font-medium pl-15">
+                          <th className="text-left py-4 font-medium pl-5 md:pl-10">
                             USER
                           </th>
                           <th className="text-left py-4 font-medium">
@@ -264,7 +267,7 @@ export default function AdminDashboard() {
                         {recentUsers.map((user) => (
                           <tr key={user.id} className="border-b last:border-0">
                             {/* Avatar + Name */}
-                            <td className="py-3 pl-10">
+                            <td className="py-3 pl-5 md:pl-10">
                               <div className="flex items-center gap-3">
                                 <div className="w-8 h-8 rounded-full overflow-hidden bg-muted border shrink-0">
                                   {user.avatar_url ? (
@@ -291,17 +294,17 @@ export default function AdminDashboard() {
                             </td>
 
                             {/* position */}
-                            <td className="py-3 text-muted-foreground capitalize">
+                            <td className="py-3 px-4 text-muted-foreground capitalize">
                               {user.position}
                             </td>
 
                             {/* Role */}
-                            <td className="py-3 text-muted-foreground capitalize">
+                            <td className="py-3 px-4 text-muted-foreground capitalize">
                               {user.role}
                             </td>
 
                             {/* Status */}
-                            <td className="py-3">
+                            <td className="py-3 px-4">
                               <span
                                 className={`font-medium capitalize ${getStatusColor(user)}`}
                               >
@@ -310,7 +313,7 @@ export default function AdminDashboard() {
                             </td>
 
                             {/* Action */}
-                            <td className="py-3">
+                            <td className="py-3 px-4 md:pr-10">
                               <Link href="/admin/users">
                                 <span className="text-red-500 hover:underline cursor-pointer text-sm">
                                   View
@@ -327,7 +330,7 @@ export default function AdminDashboard() {
 
               {/* Pending Verifications — 1/3 width */}
               <Card className="lg:col-span-1">
-                <CardHeader className="flex flex-row items-center justify-between pt-6 px-6">
+                <CardHeader className="flex flex-row items-center justify-between py-3 md:px-6">
                   <CardTitle className="text-base flex items-center gap-2">
                     <div className="bg-neutral-100 p-2 rounded-md">
                       <Clock size={18} />
@@ -343,7 +346,7 @@ export default function AdminDashboard() {
                 <Separator />
                 <CardContent className="h-full">
                   {pendingVerifications.length === 0 ? (
-                    <div className="h-full flex items-center justify-center bg-neutral-100 rounded-xl">
+                    <div className="min-h-50 md:h-full flex items-center justify-center bg-neutral-50 rounded-xl">
                       <p className="text-sm text-muted-foreground">
                         No pending verifications.
                       </p>

@@ -36,7 +36,7 @@ const clientLinks: NavLink[] = [
 const adminLinks: NavLink[] = [
   {href: "/admin/dashboard",label: "Dashboard",icon: <LayoutDashboard size={16} />},
   { href: "/admin/users", label: "Users", icon: <Users size={16} /> },
-  {href: "/admin/pending-verifications",label: "Pending Verifications",icon: <Clock size={16} />,},
+  {href: "/admin/pending-verifications",label: "Employers",icon: <Clock size={16} />,},
   { href: "/admin/settings", label: "Settings", icon: <Settings size={16} /> },
 ];
 
@@ -67,7 +67,7 @@ export default function SidebarNav({ role }: SidebarNavProps) {
   const SidebarContent = (isMobile?: boolean) => (
     <aside
       className={cn(
-        "min-h-screen bg-card border-r flex flex-col relative transition-all duration-300 ease-in-out",
+        "min-h-full bg-card border-r flex flex-col relative transition-all duration-300 ease-in-out",
         isMobile ? "w-64" : collapsed ? "w-16" : "w-64",
       )}
     >

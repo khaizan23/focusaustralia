@@ -51,7 +51,7 @@ export default function EmployerDashboard() {
 
   if (loading) {
     return (
-      <div className="flex">
+      <div className="flex min-h-screen">
         <SidebarNav role="employer" />
         <main className="flex-1 p-8">
           <p className="text-muted-foreground">Loading...</p>
@@ -61,10 +61,10 @@ export default function EmployerDashboard() {
   }
 
   return (
-    <div className="flex">
+    <div className="flex bg-neutral-50 min-h-screen">
       <SidebarNav role="employer" />
 
-      <main className="flex-1 p-8 bg-neutral-50">
+      <main className="flex-1 p-5 md:p-10 mt-10 md:mt-0">
         {/* Welcome */}
         <div className="mb-8">
           <h1 className="text-2xl font-bold">
@@ -84,7 +84,9 @@ export default function EmployerDashboard() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-3xl font-bold text-green-600">{totalCandidates}</p>
+              <p className="text-3xl font-bold text-green-600">
+                {totalCandidates}
+              </p>
               <p className="text-xs text-muted-foreground mt-1">
                 Candidates ready for hire
               </p>
