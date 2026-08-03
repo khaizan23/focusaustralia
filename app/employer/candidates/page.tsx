@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { supabase } from "@/lib/supabase"
 import SidebarNav from "@/components/ui/sidebar-nav"
-import { Bookmark } from "lucide-react"
+import { Bookmark, Users, Download } from "lucide-react";
 
 // ← Inilabas sa labas ng component
 const POSITIONS = [
@@ -361,11 +361,11 @@ export default function CandidatesPage() {
 
         {/* Table */}
         <div className="mt-10 mb-5 rounded-xl border border-black/5 bg-white">
-
           {/* Search + Filters */}
           <div className="flex flex-col md:flex-row justify-between px-5 py-3">
-            <div className="text-sm pb-4">
-              <span className="font-light">👥 Available Candidates:</span>{" "}
+            <div className="text-sm pb-4 flex">
+              <Users size={16} />
+              <span className="font-light px-1.5">Available Candidates:</span>
               {filteredCandidates.length} candidates
             </div>
             <div className="flex flex-wrap items-center gap-2">
@@ -382,7 +382,9 @@ export default function CandidatesPage() {
               >
                 <option value="">All Positions</option>
                 {POSITIONS.map((pos) => (
-                  <option key={pos} value={pos}>{pos}</option>
+                  <option key={pos} value={pos}>
+                    {pos}
+                  </option>
                 ))}
               </select>
               <div className="flex items-center gap-1">
@@ -419,8 +421,8 @@ export default function CandidatesPage() {
               <button
                 key={tab}
                 onClick={() => {
-                  setActiveTab(tab)
-                  setCurrentPage(1)
+                  setActiveTab(tab);
+                  setCurrentPage(1);
                 }}
                 className={`pb-2 text-sm capitalize transition-colors border-b-2 ${
                   activeTab === tab
@@ -430,8 +432,7 @@ export default function CandidatesPage() {
               >
                 {tab === "all"
                   ? `All (${filteredCandidates.length})`
-                  : `Saved (${filteredCandidates.filter((c) => bookmarks.has(c.id)).length})`
-                }
+                  : `Saved (${filteredCandidates.filter((c) => bookmarks.has(c.id)).length})`}
               </button>
             ))}
           </div>
@@ -454,8 +455,12 @@ export default function CandidatesPage() {
                   <tr>
                     <th className="text-left px-4 py-3 font-medium">Name</th>
                     <th className="text-left px-4 py-3 font-medium">Email</th>
-                    <th className="text-left px-4 py-3 font-medium">Position</th>
-                    <th className="text-left px-4 py-3 font-medium">Birthdate</th>
+                    <th className="text-left px-4 py-3 font-medium">
+                      Position
+                    </th>
+                    <th className="text-left px-4 py-3 font-medium">
+                      Birthdate
+                    </th>
                     <th className="text-left px-4 py-3 font-medium">Gender</th>
                     <th className="text-left px-4 py-3 font-medium">Status</th>
                     <th className="text-left px-4 py-3 font-medium">Badges</th>
@@ -467,7 +472,9 @@ export default function CandidatesPage() {
                   {paginatedCandidates.map((candidate, index) => (
                     <tr
                       key={candidate.id}
-                      className={index % 2 === 0 ? "bg-background" : "bg-muted/40"}
+                      className={
+                        index % 2 === 0 ? "bg-background" : "bg-muted/40"
+                      }
                     >
                       {/* Name */}
                       <td className="px-4 py-3">
@@ -488,18 +495,26 @@ export default function CandidatesPage() {
                               </div>
                             )}
                           </div>
-                          <span className="font-medium">{candidate.full_name}</span>
+                          <span className="font-medium">
+                            {candidate.full_name}
+                          </span>
                         </div>
                       </td>
 
-                      <td className="px-4 py-3 text-muted-foreground">{candidate.email}</td>
-                      <td className="px-4 py-3 font-medium">{candidate.position || "—"}</td>
+                      <td className="px-4 py-3 text-muted-foreground">
+                        {candidate.email}
+                      </td>
+                      <td className="px-4 py-3 font-medium">
+                        {candidate.position || "—"}
+                      </td>
                       <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">
                         {candidate.birthdate
                           ? `${formatDate(candidate.birthdate)} (${calculateAge(candidate.birthdate)} yrs)`
                           : "—"}
                       </td>
-                      <td className="px-4 py-3 text-muted-foreground capitalize">{candidate.gender || "—"}</td>
+                      <td className="px-4 py-3 text-muted-foreground capitalize">
+                        {candidate.gender || "—"}
+                      </td>
 
                       {/* Status */}
                       <td className="px-4 py-3">
@@ -526,9 +541,13 @@ export default function CandidatesPage() {
                               💼 Experience
                             </span>
                           )}
-                          {!candidate.hasCV && !candidate.hasVideo && !candidate.hasExperience && (
-                            <span className="text-xs text-muted-foreground">—</span>
-                          )}
+                          {!candidate.hasCV &&
+                            !candidate.hasVideo &&
+                            !candidate.hasExperience && (
+                              <span className="text-xs text-muted-foreground">
+                                —
+                              </span>
+                            )}
                         </div>
                       </td>
 
@@ -544,9 +563,11 @@ export default function CandidatesPage() {
                           ) : (
                             <Bookmark
                               size={18}
-                              className={bookmarks.has(candidate.id)
-                                ? "fill-red-900 text-red-900"
-                                : "text-muted-foreground"}
+                              className={
+                                bookmarks.has(candidate.id)
+                                  ? "fill-red-900 text-red-900"
+                                  : "text-muted-foreground"
+                              }
                             />
                           )}
                         </button>
@@ -554,7 +575,11 @@ export default function CandidatesPage() {
 
                       {/* Actions */}
                       <td className="px-4 py-3 text-center">
-                        <Button variant="outline" onClick={() => handleViewProfile(candidate)}>
+                        <Button
+                          variant="outline"
+                          className="cursor-pointer"
+                          onClick={() => handleViewProfile(candidate)}
+                        >
                           View Profile
                         </Button>
                       </td>
@@ -568,20 +593,21 @@ export default function CandidatesPage() {
           {/* Pagination */}
           {totalPages > 1 && (
             <div className="flex flex-wrap items-center justify-between md:px-5 py-3 border-t gap-3">
-
               {/* Items per page */}
               <div className="flex items-center gap-2 px-3 text-sm text-muted-foreground">
                 <span>Show</span>
                 <select
                   value={itemsPerPage}
                   onChange={(e) => {
-                    setItemsPerPage(Number(e.target.value))
-                    setCurrentPage(1)
+                    setItemsPerPage(Number(e.target.value));
+                    setCurrentPage(1);
                   }}
                   className="h-8 rounded-lg border px-2 text-sm"
                 >
                   {ITEMS_PER_PAGE_OPTIONS.map((n) => (
-                    <option key={n} value={n}>{n}</option>
+                    <option key={n} value={n}>
+                      {n}
+                    </option>
                   ))}
                 </select>
                 <span>per page</span>
@@ -589,15 +615,20 @@ export default function CandidatesPage() {
 
               {/* Page info */}
               <p className="text-sm text-muted-foreground px-3">
-                Showing {((currentPage - 1) * itemsPerPage) + 1}–
-                {Math.min(currentPage * itemsPerPage, displayedCandidates.length)} of{" "}
-                {displayedCandidates.length}
+                Showing {(currentPage - 1) * itemsPerPage + 1}–
+                {Math.min(
+                  currentPage * itemsPerPage,
+                  displayedCandidates.length,
+                )}{" "}
+                of {displayedCandidates.length}
               </p>
 
               {/* Page buttons */}
               <div className="flex items-center">
                 <button
-                  onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                  onClick={() =>
+                    setCurrentPage((prev) => Math.max(1, prev - 1))
+                  }
                   disabled={currentPage === 1}
                   className="px-3 h-8 text-sm rounded-lg border hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
@@ -606,31 +637,33 @@ export default function CandidatesPage() {
                 {getPageNumbers().map((page, index) => (
                   <button
                     key={index}
-                    onClick={() => typeof page === "number" && setCurrentPage(page)}
+                    onClick={() =>
+                      typeof page === "number" && setCurrentPage(page)
+                    }
                     disabled={page === "..."}
                     className={`w-8 h-8 text-sm rounded-lg transition-colors ${
                       page === currentPage
                         ? "bg-red-900 text-white"
                         : page === "..."
-                        ? "cursor-default text-muted-foreground"
-                        : "border hover:bg-muted"
+                          ? "cursor-default text-muted-foreground"
+                          : "border hover:bg-muted"
                     }`}
                   >
                     {page}
                   </button>
                 ))}
                 <button
-                  onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+                  onClick={() =>
+                    setCurrentPage((prev) => Math.min(totalPages, prev + 1))
+                  }
                   disabled={currentPage === totalPages}
                   className="px-3 h-8 text-sm rounded-lg border hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   Next
                 </button>
               </div>
-
             </div>
           )}
-
         </div>
 
         {/* View Profile Modal */}
@@ -642,11 +675,11 @@ export default function CandidatesPage() {
                 <Button
                   variant="outline"
                   onClick={() => {
-                    setViewModal(false)
-                    setSelectedCandidate(null)
-                    setCandidateFiles([])
-                    setCandidateLinks([])
-                    setCandidateExperiences([])
+                    setViewModal(false);
+                    setSelectedCandidate(null);
+                    setCandidateFiles([]);
+                    setCandidateLinks([]);
+                    setCandidateExperiences([]);
                   }}
                 >
                   Close
@@ -659,7 +692,6 @@ export default function CandidatesPage() {
                 </div>
               ) : (
                 <div className="p-6 flex flex-col gap-6">
-
                   {/* Profile Photo */}
                   <div className="flex flex-col items-center gap-3">
                     <div className="w-24 h-24 rounded-full overflow-hidden bg-muted border">
@@ -673,14 +705,20 @@ export default function CandidatesPage() {
                       ) : (
                         <div className="w-full h-full flex items-center justify-center">
                           <span className="text-3xl text-muted-foreground">
-                            {selectedCandidate.full_name?.charAt(0).toUpperCase()}
+                            {selectedCandidate.full_name
+                              ?.charAt(0)
+                              .toUpperCase()}
                           </span>
                         </div>
                       )}
                     </div>
                     <div className="text-center">
-                      <p className="font-semibold text-lg">{selectedCandidate.full_name}</p>
-                      <p className="text-sm text-muted-foreground">{selectedCandidate.email}</p>
+                      <p className="font-semibold text-lg">
+                        {selectedCandidate.full_name}
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        {selectedCandidate.email}
+                      </p>
                     </div>
                   </div>
 
@@ -688,11 +726,15 @@ export default function CandidatesPage() {
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <p className="text-xs text-muted-foreground">Position</p>
-                      <p className="text-sm border rounded-sm p-1">{selectedCandidate.position || "—"}</p>
+                      <p className="text-sm border rounded-sm p-1">
+                        {selectedCandidate.position || "—"}
+                      </p>
                     </div>
                     <div>
                       <p className="text-xs text-muted-foreground">Gender</p>
-                      <p className="text-sm capitalize border rounded-sm p-1">{selectedCandidate.gender || "—"}</p>
+                      <p className="text-sm capitalize border rounded-sm p-1">
+                        {selectedCandidate.gender || "—"}
+                      </p>
                     </div>
                     <div>
                       <p className="text-xs text-muted-foreground">Birthdate</p>
@@ -703,20 +745,31 @@ export default function CandidatesPage() {
                       </p>
                     </div>
                     <div>
-                      <p className="text-xs text-muted-foreground">Height / Weight</p>
+                      <p className="text-xs text-muted-foreground">
+                        Height / Weight
+                      </p>
                       <p className="text-sm border rounded-sm p-1">
-                        {selectedCandidate.height ? `${selectedCandidate.height} cm` : "—"} /
-                        {selectedCandidate.weight ? ` ${selectedCandidate.weight} kg` : " —"}
+                        {selectedCandidate.height
+                          ? `${selectedCandidate.height} cm`
+                          : "—"}{" "}
+                        /
+                        {selectedCandidate.weight
+                          ? ` ${selectedCandidate.weight} kg`
+                          : " —"}
                       </p>
                     </div>
                     <div className="col-span-2">
                       <p className="text-xs text-muted-foreground">Address</p>
-                      <p className="text-sm border rounded-sm p-1">{selectedCandidate.address || "—"}</p>
+                      <p className="text-sm border rounded-sm p-1">
+                        {selectedCandidate.address || "—"}
+                      </p>
                     </div>
                     {selectedCandidate.bio && (
                       <div className="col-span-2">
                         <p className="text-xs text-muted-foreground">Bio</p>
-                        <p className="text-sm border rounded-sm p-1 min-h-20">{selectedCandidate.bio}</p>
+                        <p className="text-sm border rounded-sm p-1 min-h-20">
+                          {selectedCandidate.bio}
+                        </p>
                       </div>
                     )}
                   </div>
@@ -725,22 +778,33 @@ export default function CandidatesPage() {
                   <div>
                     <h3 className="font-semibold mb-3">👷 Experience</h3>
                     {candidateExperiences.length === 0 ? (
-                      <p className="text-sm text-muted-foreground">No experience added.</p>
+                      <p className="text-sm text-muted-foreground">
+                        No experience added.
+                      </p>
                     ) : (
                       <div className="flex flex-col gap-3">
                         {candidateExperiences.map((exp) => (
-                          <div key={exp.id} className="p-3 rounded-lg border flex flex-col gap-1">
+                          <div
+                            key={exp.id}
+                            className="p-3 rounded-lg border flex flex-col gap-1"
+                          >
                             <div className="flex justify-between items-start">
                               <div>
-                                <p className="text-sm font-medium">{exp.job_title}</p>
+                                <p className="text-sm font-medium">
+                                  {exp.job_title}
+                                </p>
                                 <p className="text-xs text-muted-foreground">
                                   {exp.company_name}
                                   {exp.location ? ` · ${exp.location}` : ""}
-                                  {exp.employment_type ? ` · ${exp.employment_type}` : ""}
+                                  {exp.employment_type
+                                    ? ` · ${exp.employment_type}`
+                                    : ""}
                                 </p>
                                 <p className="text-xs text-muted-foreground">
                                   {exp.start_month} {exp.start_year} —{" "}
-                                  {exp.is_current ? "Present" : `${exp.end_month} ${exp.end_year}`}
+                                  {exp.is_current
+                                    ? "Present"
+                                    : `${exp.end_month} ${exp.end_year}`}
                                 </p>
                               </div>
                               {exp.is_current && (
@@ -750,7 +814,9 @@ export default function CandidatesPage() {
                               )}
                             </div>
                             {exp.job_description && (
-                              <p className="text-xs text-muted-foreground mt-1">{exp.job_description}</p>
+                              <p className="text-xs text-muted-foreground mt-1">
+                                {exp.job_description}
+                              </p>
                             )}
                           </div>
                         ))}
@@ -762,19 +828,34 @@ export default function CandidatesPage() {
                   <div>
                     <h3 className="font-semibold mb-3">📑 Documents</h3>
                     {candidateFiles.length === 0 ? (
-                      <p className="text-sm text-muted-foreground">No documents uploaded.</p>
+                      <p className="text-sm text-muted-foreground">
+                        No documents uploaded.
+                      </p>
                     ) : (
                       <div className="flex flex-col gap-2">
                         {candidateFiles.map((file) => (
-                          <div key={file.id} className="flex justify-between items-center p-3 rounded-lg border">
+                          <div
+                            key={file.id}
+                            className="flex justify-between items-center p-3 rounded-lg border"
+                          >
                             <div>
-                              <p className="text-sm font-medium">📄 {file.title}</p>
+                              <p className="text-sm font-medium">
+                                📄 {file.title}
+                              </p>
                               <p className="text-xs text-muted-foreground">
-                                {formatFileSize(file.file_size)} · {formatDate(file.created_at)}
+                                {formatFileSize(file.file_size)} ·{" "}
+                                {formatDate(file.created_at)}
                               </p>
                             </div>
-                            <Button variant="outline" onClick={() => handleDownload(file.file_path, file.title)}>
-                              Download
+                            <Button
+                              variant="outline"
+                              className="bg-black text-white cursor-pointer"
+                              onClick={() =>
+                                handleDownload(file.file_path, file.title)
+                              }
+                            >
+                              <Download />
+                               Download
                             </Button>
                           </div>
                         ))}
@@ -786,15 +867,24 @@ export default function CandidatesPage() {
                   <div>
                     <h3 className="font-semibold mb-3">🎬 Video Links</h3>
                     {candidateLinks.length === 0 ? (
-                      <p className="text-sm text-muted-foreground">No video links added.</p>
+                      <p className="text-sm text-muted-foreground">
+                        No video links added.
+                      </p>
                     ) : (
                       <div className="flex flex-col gap-2">
                         {candidateLinks.map((link) => (
-                          <div key={link.id} className="flex justify-between items-center p-3 rounded-lg border">
+                          <div
+                            key={link.id}
+                            className="flex justify-between items-center p-3 rounded-lg border"
+                          >
                             <div className="flex flex-col gap-1">
-                              <p className="text-sm font-medium">🎥 {link.title}</p>
+                              <p className="text-sm font-medium">
+                                🎥 {link.title}
+                              </p>
                               {link.description && (
-                                <p className="text-xs text-muted-foreground">{link.description}</p>
+                                <p className="text-xs text-muted-foreground">
+                                  {link.description}
+                                </p>
                               )}
                               <a
                                 href={link.url}
@@ -810,14 +900,12 @@ export default function CandidatesPage() {
                       </div>
                     )}
                   </div>
-
                 </div>
               )}
             </div>
           </div>
         )}
-
       </main>
     </div>
-  )
+  );
 }
